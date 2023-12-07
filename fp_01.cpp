@@ -117,12 +117,18 @@ class Rich : public Character
 private:
 public:
     Rich(const string& name); // constructor
-    void thought(Card* cardArr);
+    ~Rich(); //destructor
+    void thought(Card* cardArr[]);
     int biddingChips();
 };
 
 Rich::Rich(const string& name) : Character(name)
 {
-    this->chips = 30;//defalut setting: the rich has ten more chips than other
+    this->chips += 10;//defalut setting: the rich has ten more chips than other
 }
 
+void Rich::thought(Card* cardArr[])
+{
+    //the logic of rich man to manage the card
+    
+}
