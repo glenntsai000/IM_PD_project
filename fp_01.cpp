@@ -129,6 +129,11 @@ Rich::Rich(const string& name) : Character(name)
 
 void Rich::thought(Card* cardArr[])
 {
-    //the logic of rich man to manage the card
+    //the logic of rich man to manage the cardArray
+    
+}
+
+int Rich::biddingChips()
+{
     
 }
