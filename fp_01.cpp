@@ -6,8 +6,9 @@ class Card
 {
 protected:
 public:
-    Card();
+    Card() {};
     virtual string getValue() = 0;
+    virtual void printCard() = 0;
 };
 
 class SymbolCard : public Card
@@ -17,11 +18,17 @@ private:
 public:
     SymbolCard(string symbol) : symbol(symbol) {};
     string getValue();
+    void printCard();
 };
 
 string SymbolCard::getValue()
 {
     return this->symbol;
+}
+
+void SymbolCard::printCard()
+{
+    cout << "|" << this->symbol << "|";
 }
 
 class NumberCard : public Card
@@ -32,6 +39,7 @@ private:
 public:
     NumberCard(int num, string color) : num(num), color(color) {};
     string getValue();
+    void printCard();
 };
 
 string NumberCard::getValue()
@@ -39,7 +47,10 @@ string NumberCard::getValue()
     return to_string(this->num);
 }
 
-
+void NumberCard::printCard()
+{
+    cout << "|" << this->color << this->num << "|";
+}
 
 class Character
 {
@@ -53,7 +64,7 @@ public:
 	~Character(); // destructor
     void addCard(Card* c);
 	int calCard(); // 計算牌的大小
-	virtual int biddingChips();
+	virtual int biddingChips(int currChip); //前一人下注的籌碼
 };
 
 Character::Character(const string& name)
