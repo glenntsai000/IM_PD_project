@@ -111,3 +111,5 @@ int Character::calCard()
 
     return value;
 }
+
+//test
