@@ -353,6 +353,121 @@ int Rich::biddingChips(const int currChip)
     return this->chips;//要怎麼知道現在最少的籌碼有幾個
 }
 
+class Math : public Character
+{
+private:
+public:
+    Math(const std::string& n) : Character(n) {};
+    ~Math() {};
+    // 數學家的下注邏輯
+    bool decideToBet() override
+    {
+        double result = calculateOptimalValue();
+        if (result == 19 or result == 20 or result == 21 or result == 22)
+            return true;
+        return false;
+    }
+
+    // 下注籌碼數量
+    int betChips() override
+    {
+        double result = calculateOptimalValue();
+        if (result == 19)
+            return chips * 0.76;
+        if (result == 20)
+            return chips * 0.78;
+        if (result == 21)
+            return chips * 0.77;
+        if (result == 22)
+            return chips * 0.75;
+    }
+
+    // 數學家的出牌演算法
+    double calculateOptimalValue()
+    {
+        vector<Card*> numberCards; //數字卡牌
+        vector<Card*> symbolCards; //符號卡牌
+
+        // 將數字卡片和符號卡片分別放入對應的向量中
+        for (int i = 0; i < 7; ++i)
+        {
+            if (cardArr[i] != nullptr)
+            {
+                if (NumberCard* numCard = dynamic_cast<NumberCard*>(cardArr[i]))
+                {
+                    numberCards.push_back(numCard);
+                }
+                else if (SymbolCard* symCard = dynamic_cast<SymbolCard*>(cardArr[i]))
+                {
+                    symbolCards.push_back(symCard);
+                }
+            }
+        }
+
+        // 存儲最小差距的絕對值和對應的結果
+        double minDifference = numeric_limits<double>::infinity();
+        double result = 0;
+
+        // 窮舉所有可能的排列組合
+        do
+        {
+            do
+            {
+                int currentResult = stoi(numberCards[0]->getValue());
+                size_t symbolIndex = 0;
+
+                for (size_t i = 1; i < numberCards.size(); ++i)
+                {
+                    // 根據符號卡片運算
+                    if (symbolIndex < symbolCards.size())
+                    {
+                        string symbol = symbolCards[symbolIndex]->getValue();
+                        if (symbol == "+")
+                        {
+                            currentResult += stoi(numberCards[i]->getValue());
+                        }
+                        else if (symbol == "-")
+                        {
+                            currentResult -= stoi(numberCards[i]->getValue());
+                        }
+                        else if (symbol == "*")
+                        {
+                            currentResult *= stoi(numberCards[i]->getValue());
+                        }
+                        else if (symbol == "/")
+                        {
+                            int divisor = stoi(numberCards[i]->getValue());
+                            if (divisor != 0)
+                            {
+                                currentResult /= divisor;
+                            }
+                            // 處理除以零的情況
+                        }
+
+                        // 移至下一個符號
+                        ++symbolIndex;
+                    }
+                }
+
+                // 計算差距的絕對值
+                double currentDifference1 = abs(currentResult - 1.0);
+                double currentDifference20 = abs(currentResult - 20.0);
+
+                // 更新最小差距的絕對值和對應的結果
+                if (currentDifference1 < minDifference || currentDifference20 < minDifference)
+                {
+                    minDifference = min(currentDifference1, currentDifference20);
+                    result = currentResult;
+                }
+
+            } while (next_permutation(numberCards.begin(), numberCards.end())); //產生所有數字卡牌的排列組合
+
+        } while (next_permutation(symbolCards.begin(), symbolCards.end())); //產生所有符號卡牌的排列組合
+
+        return result;
+    }
+};
+
 int main()
 {
     // main for test
