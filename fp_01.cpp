@@ -3,6 +3,12 @@
 #include<cstdlib>
 using namespace std;
 
+#define NC "\e[0m"
+#define RED "\e[0;91m"
+#define GREEN "\e[0;92m"
+#define BLUE "\e[0;94m"
+
+
 class Card
 {
 protected:
@@ -53,7 +59,14 @@ string NumberCard::getValue()
 
 void NumberCard::printCard()
 {
-    cout << "|" << this->color << this->num << "|";
+    if(this->color.compare("R") == 0)
+        cout << RED << "|" << this->num << "|" << NC;
+    else if(this->color.compare("G") == 0)
+        cout << GREEN << "|" << this->num << "|" << NC;
+    else if(this->color.compare("B") == 0)
+        cout << BLUE << "|" << this->num << "|" << NC;
+    else
+        cout << "|" << this->num << "|";
 }
 
 class Character
@@ -258,7 +271,6 @@ int Rich::biddingChips()
     
 }
 
-
 int main()
 {
     // main for test
@@ -271,11 +283,11 @@ int main()
     d.addCard(c3);
     NumberCard* c4 = new NumberCard(1, "R");
     d.addCard(c4);
-    NumberCard* c5 = new NumberCard(2, "R");
+    NumberCard* c5 = new NumberCard(2, "G");
     d.addCard(c5);
-    NumberCard* c6 = new NumberCard(2, "R");
+    NumberCard* c6 = new NumberCard(2, "B");
     d.addCard(c6);
-    NumberCard* c7 = new NumberCard(4, "R");
+    NumberCard* c7 = new NumberCard(4, "W");
     d.addCard(c7);
 
     d.printAllCard();
