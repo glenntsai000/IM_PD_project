@@ -1,6 +1,6 @@
-#include<iostream>
-#include<string>
-#include<cstdlib>
+#include <iostream>
+#include <string>
+#include <cstdlib>
 using namespace std;
 
 #define NC "\e[0m"
@@ -8,15 +8,15 @@ using namespace std;
 #define GREEN "\e[0;92m"
 #define BLUE "\e[0;94m"
 
-
 class Card
 {
 protected:
     bool isSymbol;
+
 public:
-    Card(bool isSymbol) : isSymbol(isSymbol) {};
-    virtual ~Card() {};
-    bool isSymbolCard() {return this->isSymbol;}
+    Card(bool isSymbol) : isSymbol(isSymbol){};
+    virtual ~Card(){};
+    bool isSymbolCard() { return this->isSymbol; }
     virtual string getValue() = 0;
     virtual void printCard() = 0;
 };
@@ -25,8 +25,9 @@ class SymbolCard : public Card
 {
 private:
     string symbol;
+
 public:
-    SymbolCard(string symbol) : Card(true), symbol(symbol) {};
+    SymbolCard(string symbol) : Card(true), symbol(symbol){};
     string getValue();
     void printCard();
 };
@@ -46,8 +47,9 @@ class NumberCard : public Card
 private:
     int num;
     string color;
+
 public:
-    NumberCard(int num, string color) : Card(false), num(num), color(color) {};
+    NumberCard(int num, string color) : Card(false), num(num), color(color){};
     string getValue();
     void printCard();
 };
@@ -59,11 +61,11 @@ string NumberCard::getValue()
 
 void NumberCard::printCard()
 {
-    if(this->color.compare("R") == 0)
+    if (this->color.compare("R") == 0)
         cout << RED << "|" << this->num << "|" << NC;
-    else if(this->color.compare("G") == 0)
+    else if (this->color.compare("G") == 0)
         cout << GREEN << "|" << this->num << "|" << NC;
-    else if(this->color.compare("B") == 0)
+    else if (this->color.compare("B") == 0)
         cout << BLUE << "|" << this->num << "|" << NC;
     else
         cout << "|" << this->num << "|";
@@ -72,116 +74,232 @@ void NumberCard::printCard()
 class Character
 {
 protected:
-    Card* cardArr[7];
+    Card *cardArr[7];
     int totalChips;
     int chipBiddenThisRound;
     bool bigOrSmall; // true for big, otherwise
     string name;
+
 public:
-    Character(const string& name); // constructor
-	virtual ~Character(); // destructor
-    void addCard(Card* c);
-    void swapCard(Card* c1, Card* c2);
-	int calCard(); // 計算牌的大小
+    Character(const string &name); // constructor
+    virtual ~Character();          // destructor
+    void addCard(Card *c);
+    void swapCard(Card *c1, Card *c2);
+    double calCard(); // 計算牌的大小
     void printAllCard();
-    virtual void sortCard() {};
-	virtual int biddingChips(int currChip) = 0; //前一人下注的籌碼
+    virtual void sortCard(){};
+    virtual int biddingChips(int currChip) = 0; // 前一人下注的籌碼
 };
 
-Character::Character(const string& name)
+Character::Character(const string &name)
 {
     this->name = name;
     this->totalChips = 0;
     this->bigOrSmall = false;
-    for(int i = 0; i < 7; i++)
+    for (int i = 0; i < 7; i++)
         this->cardArr[i] = nullptr;
 }
 
 Character::~Character()
 {
-    for(int i = 0; i < 7; i++)
+    for (int i = 0; i < 7; i++)
         delete this->cardArr[i];
 }
 
-void Character::addCard(Card* c)
+void Character::addCard(Card *c)
 {
-    for(int i = 0; i < 7; i++){
-        if(this->cardArr[i] == nullptr){
+    for (int i = 0; i < 7; i++)
+    {
+        if (this->cardArr[i] == nullptr)
+        {
             this->cardArr[i] = c;
             return;
         }
     }
 }
 
-void Character::swapCard(Card* c1, Card* c2)
+void Character::swapCard(Card *c1, Card *c2)
 {
-    Card* temp = c1;
+    Card *temp = c1;
     c1 = c2;
     c2 = temp;
 }
 
-int Character::calCard()
+double Character::calCard()
 {
-    int value = stoi(this->cardArr[0]->getValue());
+    double value = stod(this->cardArr[0]->getValue());
     int idx = 1;
 
-    while(idx < 7){
-        if(this->cardArr[idx]->getValue().compare("+") == 0){
+    while (idx < 7)
+    {
+        if (this->cardArr[idx]->getValue().compare("+") == 0)
+        {
             idx++;
-            value += stoi(this->cardArr[idx]->getValue());
-            idx++;
-        }
-        else if(this->cardArr[idx]->getValue().compare("-") == 0){
-            idx++;
-            value -= stoi(this->cardArr[idx]->getValue());
+            value += stod(this->cardArr[idx]->getValue());
             idx++;
         }
-        else if(this->cardArr[idx]->getValue().compare("*") == 0){
+        else if (this->cardArr[idx]->getValue().compare("-") == 0)
+        {
             idx++;
-            value *= stoi(this->cardArr[idx]->getValue());
-            idx++;
-        }
-        else if(this->cardArr[idx]->getValue().compare("/") == 0){
-            idx++;
-            value /= stoi(this->cardArr[idx]->getValue());
+            value -= stod(this->cardArr[idx]->getValue());
             idx++;
         }
+        else if (this->cardArr[idx]->getValue().compare("*") == 0)
+        {
+            // idx = 符號
+            if (idx >= 3)
+            {
+                bool frontIsPlus = true;
+                if (this->cardArr[idx - 2]->getValue().compare("+") == 0)
+                    value -= stod(this->cardArr[idx - 1]->getValue());
+                else if (this->cardArr[idx - 2]->getValue().compare("-") == 0)
+                {
+                    value += stod(this->cardArr[idx - 1]->getValue());
+                    frontIsPlus = false;
+                }
+
+                idx++;
+                // idx = 數字
+                double first = 0;
+                first = stod(this->cardArr[idx - 2]->getValue()) * stod(this->cardArr[idx]->getValue());
+                if (frontIsPlus)
+                    value += first;
+                else
+                    value -= first;
+            }
+            else
+            {
+                idx++;
+                // idx = 數字
+                value *= stod(this->cardArr[idx]->getValue());
+            }
+            idx++;
+        }
+        else if (this->cardArr[idx]->getValue().compare("/") == 0)
+        {
+            // idx = 符號
+            if (idx >= 3)
+            {
+                bool frontIsPlus = true;
+                if (this->cardArr[idx - 2]->getValue().compare("+") == 0)
+                    value -= stod(this->cardArr[idx - 1]->getValue());
+                else if (this->cardArr[idx - 2]->getValue().compare("-") == 0)
+                {
+                    value += stod(this->cardArr[idx - 1]->getValue());
+                    frontIsPlus = false;
+                }
+                idx++;
+                // idx = 數字
+                double first = 0;
+                first = stod(this->cardArr[idx - 2]->getValue()) / stod(this->cardArr[idx]->getValue());
+                if (frontIsPlus)
+                    value += first;
+                else
+                    value -= first;
+            }
+            else
+            {
+                idx++;
+                // idx = 數字
+                value /= stod(this->cardArr[idx]->getValue());
+            }
+
+            idx++;
+        }
+        // cout << value << endl;
     }
 
+    // cout << "d";
     return value;
 }
 
 void Character::printAllCard()
 {
-    for(int i = 0; i < 7; i++){
+    for (int i = 0; i < 7; i++)
+    {
         this->cardArr[i]->printCard();
         cout << " ";
     }
     cout << endl;
 }
 
+// 玩家
+class Player : public Character
+{
+private:
+public:
+    // Player(const string& playername) : Character("playername") {};
+    Player(const string &playername) : Character(playername){};
+    ~Player(){};
+    void sortCard(string order);
+    int biddingChips(const int currChip) { return 0; };
+    int biddingChips(const int currChip, const int inputChip);
+};
+
+int Player::biddingChips(const int currChip, const int inputChip)
+{
+    // throw error
+    cout << inputChip << endl;
+    return inputChip;
+}
+
+void Player::sortCard(string order)
+{
+    int cnt = order.length();
+    Card *newCardArr[7];
+    // cout << order<<endl;
+    for (int i = 0; i < cnt; i++)
+    {
+        // cout << order[i] << " ";
+        string str(1, order[i]);
+
+        // cout << endl;
+        for (int j = 0; j < cnt; j++)
+        {
+            if (this->cardArr[j]->getValue() == str)
+            {
+                newCardArr[i] = this->cardArr[j];
+                newCardArr[i] = this->cardArr[j];
+                this->cardArr[j] = new SymbolCard("g");
+                break;
+            }
+        }
+    }
+
+    for (int i = 0; i < cnt; i++)
+    {
+        delete this->cardArr[i];
+        this->cardArr[i] = newCardArr[i];
+    }
+}
+
 class Drunkard : public Character
 {
 private:
 public:
-    Drunkard() : Character("酒鬼") {};
-    ~Drunkard() {};
+    Drunkard() : Character("酒鬼"){};
+    ~Drunkard(){};
     void sortCard();
-    bool _findNextIdx(bool isSymbol, int& idx);
-    int biddingChips(const int currChip); //前一人下注的籌碼
+    bool _findNextIdx(bool isSymbol, int &idx);
+    int biddingChips(const int currChip); // 前一人下注的籌碼
 };
 
-bool Drunkard::_findNextIdx(bool isSymbol, int& idx)
+bool Drunkard::_findNextIdx(bool isSymbol, int &idx)
 {
-    for(int i = idx + 1; i < 7; i++){
-        if(isSymbol){
-            if(this->cardArr[i]->isSymbolCard() == true){
+    for (int i = idx + 1; i < 7; i++)
+    {
+        if (isSymbol)
+        {
+            if (this->cardArr[i]->isSymbolCard() == true)
+            {
                 idx = i;
                 return true;
             }
         }
-        else{
-            if(this->cardArr[i]->isSymbolCard() == false){
+        else
+        {
+            if (this->cardArr[i]->isSymbolCard() == false)
+            {
                 idx = i;
                 return true;
             }
@@ -194,93 +312,105 @@ void Drunkard::sortCard()
 {
     int symbolIdx = 0;
     int numIdx = 0;
-    Card* newCardArr[7];
+    Card *newCardArr[7];
     int currIdx = 0;
-    //找目前cardArr中的第一張符號牌
-    for(int i = 0; i < 7; i++){
-        if(this->cardArr[i]->isSymbolCard() == true){
+    // 找目前cardArr中的第一張符號牌
+    for (int i = 0; i < 7; i++)
+    {
+        if (this->cardArr[i]->isSymbolCard() == true)
+        {
             symbolIdx = i;
             break;
         }
     }
 
-    //找目前cardArr中的第一張數字牌
-    for(int i = 0; i < 7; i++){
-        if(this->cardArr[i]->isSymbolCard() == false){
+    // 找目前cardArr中的第一張數字牌
+    for (int i = 0; i < 7; i++)
+    {
+        if (this->cardArr[i]->isSymbolCard() == false)
+        {
             numIdx = i;
             break;
         }
     }
-    //如果符號排在數字前面就互換位置，放進新陣列
+    // 如果符號排在數字前面就互換位置，放進新陣列
     newCardArr[currIdx] = this->cardArr[numIdx];
     currIdx++;
     newCardArr[currIdx] = this->cardArr[symbolIdx];
     currIdx++;
-    
+
     bool symbolFlag = true, numFlag = true;
-    while(symbolFlag || numFlag){
-        if(numFlag)
+    while (symbolFlag || numFlag)
+    {
+        if (numFlag)
             numFlag = _findNextIdx(false, numIdx);
-        if(symbolFlag)
+        if (symbolFlag)
             symbolFlag = _findNextIdx(true, symbolIdx);
-        if(numFlag == true && symbolFlag == true){
+        if (numFlag == true && symbolFlag == true)
+        {
             newCardArr[currIdx] = this->cardArr[numIdx];
             currIdx++;
             newCardArr[currIdx] = this->cardArr[symbolIdx];
             currIdx++;
         }
-        else if(numFlag == true && symbolFlag == false){
+        else if (numFlag == true && symbolFlag == false)
+        {
             newCardArr[currIdx] = this->cardArr[numIdx];
             currIdx++;
         }
     }
-    
 
-    for(int i = 0; i < 7; i++)
+    for (int i = 0; i < 7; i++)
         this->cardArr[i] = newCardArr[i];
 }
 
 int Drunkard::biddingChips(const int currChip)
 {
-    return rand()%(this->totalChips - currChip + 1) + currChip;
+    return rand() % (this->totalChips - currChip + 1) + currChip;
 }
 
 class Rich : public Character
 {
 private:
-    void swapPtr(Card*& p1, Card*& p2);
+    void swapPtr(Card *&p1, Card *&p2);
+
 public:
-    Rich(const string& name); // constructor
-    ~Rich(); //destructor
+    Rich(const string &name); // constructor
+    ~Rich();                  // destructor
     void sortCard();
-    bool _findNextIdx(bool isSymbol, int& idx);
+    bool _findNextIdx(bool isSymbol, int &idx);
     int biddingChips(const int currChip);
 };
 
-Rich::Rich(const string& name) : Character(name)
+Rich::Rich(const string &name) : Character(name)
 {
-    this->totalChips += 10;//defalut setting: the rich has ten more chips than other
-    this->bigOrSmall = true;//富豪喜歡賭大的
+    this->totalChips += 10;  // defalut setting: the rich has ten more chips than other
+    this->bigOrSmall = true; // 富豪喜歡賭大的
 }
 
-void Rich::swapPtr(Card*& p1, Card*& p2) 
+void Rich::swapPtr(Card *&p1, Card *&p2)
 {
-    Card* temp = p1;
+    Card *temp = p1;
     p1 = p2;
     p2 = temp;
 }
 
-bool Rich::_findNextIdx(bool isSymbol, int& idx)
+bool Rich::_findNextIdx(bool isSymbol, int &idx)
 {
-    for(int i = idx + 1; i < 7; i++){
-        if(isSymbol){
-            if(this->cardArr[i]->isSymbolCard() == true){
+    for (int i = idx + 1; i < 7; i++)
+    {
+        if (isSymbol)
+        {
+            if (this->cardArr[i]->isSymbolCard() == true)
+            {
                 idx = i;
                 return true;
             }
         }
-        else{
-            if(this->cardArr[i]->isSymbolCard() == false){
+        else
+        {
+            if (this->cardArr[i]->isSymbolCard() == false)
+            {
                 idx = i;
                 return true;
             }
@@ -293,56 +423,62 @@ void Rich::sortCard()
 {
     int symbolIdx = 0;
     int numIdx = 0;
-    Card* newCardArr[7];
+    Card *newCardArr[7];
     int currIdx = 0;
-    //找目前cardArr中的第一張符號牌
-    for(int i = 0; i < 7; i++){
-        if(this->cardArr[i]->isSymbolCard() == true){
+    // 找目前cardArr中的第一張符號牌
+    for (int i = 0; i < 7; i++)
+    {
+        if (this->cardArr[i]->isSymbolCard() == true)
+        {
             symbolIdx = i;
             break;
         }
     }
 
-    //找目前cardArr中的第一張數字牌
-    for(int i = 0; i < 7; i++){
-        if(this->cardArr[i]->isSymbolCard() == false){
+    // 找目前cardArr中的第一張數字牌
+    for (int i = 0; i < 7; i++)
+    {
+        if (this->cardArr[i]->isSymbolCard() == false)
+        {
             numIdx = i;
             break;
         }
     }
-    //如果符號排在數字前面就互換位置，放進新陣列
+    // 如果符號排在數字前面就互換位置，放進新陣列
     newCardArr[currIdx] = this->cardArr[numIdx];
     currIdx++;
     newCardArr[currIdx] = this->cardArr[symbolIdx];
     currIdx++;
-    
+
     bool symbolFlag = true, numFlag = true;
-    while(symbolFlag || numFlag){
-        if(numFlag)
+    while (symbolFlag || numFlag)
+    {
+        if (numFlag)
             numFlag = _findNextIdx(false, numIdx);
-        if(symbolFlag)
+        if (symbolFlag)
             symbolFlag = _findNextIdx(true, symbolIdx);
-        if(numFlag == true && symbolFlag == true){
+        if (numFlag == true && symbolFlag == true)
+        {
             newCardArr[currIdx] = this->cardArr[numIdx];
             currIdx++;
             newCardArr[currIdx] = this->cardArr[symbolIdx];
             currIdx++;
         }
-        else if(numFlag == true && symbolFlag == false){
+        else if (numFlag == true && symbolFlag == false)
+        {
             newCardArr[currIdx] = this->cardArr[numIdx];
             currIdx++;
         }
     }
-    
 
-    for(int i = 0; i < 7; i++)
+    for (int i = 0; i < 7; i++)
         this->cardArr[i] = newCardArr[i];
-    //富豪會把數字由大到小排列
-    for(int i = 0; i < 3; i++)
+    // 富豪會把數字由大到小排列
+    for (int i = 0; i < 3; i++)
     {
-        for(int j = 0; j < 3 - i - 1; j++)
+        for (int j = 0; j < 3 - i - 1; j++)
         {
-            if(stoi(this->cardArr[2 * j]->getValue()) - stoi(this->cardArr[2 * j + 2]->getValue()) > 0)
+            if (stoi(this->cardArr[2 * j]->getValue()) - stoi(this->cardArr[2 * j + 2]->getValue()) > 0)
                 swapPtr(this->cardArr[2 * j], this->cardArr[2 * j + 2]);
         }
     }
@@ -350,21 +486,22 @@ void Rich::sortCard()
 
 int Rich::biddingChips(const int currChip)
 {
-    //all in
-    return this->totalChips;//要怎麼知道現在最少的籌碼有幾個
+    // all in
+    return this->totalChips; // 要怎麼知道現在最少的籌碼有幾個
 }
 
 class Game
 {
 private:
-    Character* playerList[4];
-    Card* cardList[52];
+    Character *playerList[4];
+    Card *cardList[52];
     int round;
     int chipsInRoundBig;
     int chipsInRoundSmall;
+
 public:
     void dealCard();
-    void printPublicCard(Character* player);
+    void printPublicCard(Character *player);
     void bidChip();
     void update();
     void printResult();
@@ -373,26 +510,44 @@ public:
 int main()
 {
     // main for test
+    // cout << "請輸入玩家名稱: ";
+    // string playerName;
+    // cin >> playerName;
+    // Player py(playerName);
+
     Drunkard d;
-    SymbolCard* c1 = new SymbolCard("+");
+    SymbolCard *c1 = new SymbolCard("+");
     d.addCard(c1);
-    SymbolCard* c2 = new SymbolCard("-");
+    SymbolCard *c2 = new SymbolCard("-");
     d.addCard(c2);
-    SymbolCard* c3 = new SymbolCard("/");
+    SymbolCard *c3 = new SymbolCard("/");
     d.addCard(c3);
-    NumberCard* c4 = new NumberCard(1, "R");
+    NumberCard *c4 = new NumberCard(1, "R");
     d.addCard(c4);
-    NumberCard* c5 = new NumberCard(2, "G");
+    NumberCard *c5 = new NumberCard(2, "G");
     d.addCard(c5);
-    NumberCard* c6 = new NumberCard(2, "B");
+    NumberCard *c6 = new NumberCard(2, "B");
     d.addCard(c6);
-    NumberCard* c7 = new NumberCard(4, "W");
+    NumberCard *c7 = new NumberCard(4, "W");
     d.addCard(c7);
 
     d.printAllCard();
     d.sortCard();
     d.printAllCard();
     cout << d.calCard() << endl;
+
+    // cout << "請進行下注: ";
+    // int playerbid;
+    // cin >> playerbid;
+    // py.biddingChips(3, playerbid);
+
+    // cout << "請輸入最終數學式: \n";
+    // string cardOrder;
+    // cin >> cardOrder;
+    // py.sortCard(cardOrder);
+
+    // py.printAllCard();
+    // cout << "數學式大小: " << py.calCard() << endl;
 
     return 0;
 }
