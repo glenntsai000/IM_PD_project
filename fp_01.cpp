@@ -231,6 +231,33 @@ int Drunkard::biddingChips(const int currChip)
     return rand()%(this->chips - currChip + 1) + currChip;
 }
 
+class Rich : public Character
+{
+private:
+public:
+    Rich(const string& name); // constructor
+    ~Rich(); //destructor
+    void thought(Card* cardArr[]);
+    int biddingChips();
+};
+
+Rich::Rich(const string& name) : Character(name)
+{
+    this->chips += 10;//defalut setting: the rich has ten more chips than other
+}
+
+void Rich::thought(Card* cardArr[])
+{
+    //the logic of rich man to manage the cardArray
+    //隨機指定賭大或賭小
+    //if(bigOrSmall)
+}
+
+int Rich::biddingChips()
+{
+    
+}
+
 
 int main()
 {
