@@ -73,7 +73,8 @@ class Character
 {
 protected:
     Card* cardArr[7];
-    int chips;
+    int totalChips;
+    int chipBiddenThisRound;
     bool bigOrSmall; // true for big, otherwise
     string name;
 public:
@@ -90,7 +91,7 @@ public:
 Character::Character(const string& name)
 {
     this->name = name;
-    this->chips = 0;
+    this->totalChips = 0;
     this->bigOrSmall = false;
     for(int i = 0; i < 7; i++)
         this->cardArr[i] = nullptr;
@@ -241,7 +242,7 @@ void Drunkard::sortCard()
 
 int Drunkard::biddingChips(const int currChip)
 {
-    return rand()%(this->chips - currChip + 1) + currChip;
+    return rand()%(this->totalChips - currChip + 1) + currChip;
 }
 
 class Rich : public Character
@@ -258,7 +259,7 @@ public:
 
 Rich::Rich(const string& name) : Character(name)
 {
-    this->chips += 10;//defalut setting: the rich has ten more chips than other
+    this->totalChips += 10;//defalut setting: the rich has ten more chips than other
     this->bigOrSmall = true;//富豪喜歡賭大的
 }
 
@@ -350,8 +351,10 @@ void Rich::sortCard()
 int Rich::biddingChips(const int currChip)
 {
     //all in
-    return this->chips;//要怎麼知道現在最少的籌碼有幾個
+    return this->totalChips;//要怎麼知道現在最少的籌碼有幾個
 }
+
+
 
 class Math : public Character
 {
@@ -466,6 +469,24 @@ public:
 
         return result;
     }
+};
+
+
+
+class Game
+{
+private:
+    Character* playerList[4];
+    Card* cardList[52];
+    int round;
+    int chipsInRoundBig;
+    int chipsInRoundSmall;
+public:
+    void dealCard();
+    void printPublicCard(Character* player);
+    void bidChip();
+    void update();
+    void printResult();
 };
 
 int main()
