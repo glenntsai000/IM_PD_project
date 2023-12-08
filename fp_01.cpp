@@ -247,28 +247,110 @@ int Drunkard::biddingChips(const int currChip)
 class Rich : public Character
 {
 private:
+    void swapPtr(Card*& p1, Card*& p2);
 public:
     Rich(const string& name); // constructor
     ~Rich(); //destructor
-    void thought(Card* cardArr[]);
-    int biddingChips();
+    void sortCard();
+    bool _findNextIdx(bool isSymbol, int& idx);
+    int biddingChips(const int currChip);
 };
 
 Rich::Rich(const string& name) : Character(name)
 {
     this->chips += 10;//defalut setting: the rich has ten more chips than other
+    this->bigOrSmall = true;//富豪喜歡賭大的
 }
 
-void Rich::thought(Card* cardArr[])
+void Rich::swapPtr(Card*& p1, Card*& p2) 
 {
-    //the logic of rich man to manage the cardArray
-    //隨機指定賭大或賭小
-    //if(bigOrSmall)
+    Card* temp = p1;
+    p1 = p2;
+    p2 = temp;
 }
 
-int Rich::biddingChips()
+bool Rich::_findNextIdx(bool isSymbol, int& idx)
 {
+    for(int i = idx + 1; i < 7; i++){
+        if(isSymbol){
+            if(this->cardArr[i]->isSymbolCard() == true){
+                idx = i;
+                return true;
+            }
+        }
+        else{
+            if(this->cardArr[i]->isSymbolCard() == false){
+                idx = i;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void Rich::sortCard()
+{
+    int symbolIdx = 0;
+    int numIdx = 0;
+    Card* newCardArr[7];
+    int currIdx = 0;
+    //找目前cardArr中的第一張符號牌
+    for(int i = 0; i < 7; i++){
+        if(this->cardArr[i]->isSymbolCard() == true){
+            symbolIdx = i;
+            break;
+        }
+    }
+
+    //找目前cardArr中的第一張數字牌
+    for(int i = 0; i < 7; i++){
+        if(this->cardArr[i]->isSymbolCard() == false){
+            numIdx = i;
+            break;
+        }
+    }
+    //如果符號排在數字前面就互換位置，放進新陣列
+    newCardArr[currIdx] = this->cardArr[numIdx];
+    currIdx++;
+    newCardArr[currIdx] = this->cardArr[symbolIdx];
+    currIdx++;
     
+    bool symbolFlag = true, numFlag = true;
+    while(symbolFlag || numFlag){
+        if(numFlag)
+            numFlag = _findNextIdx(false, numIdx);
+        if(symbolFlag)
+            symbolFlag = _findNextIdx(true, symbolIdx);
+        if(numFlag == true && symbolFlag == true){
+            newCardArr[currIdx] = this->cardArr[numIdx];
+            currIdx++;
+            newCardArr[currIdx] = this->cardArr[symbolIdx];
+            currIdx++;
+        }
+        else if(numFlag == true && symbolFlag == false){
+            newCardArr[currIdx] = this->cardArr[numIdx];
+            currIdx++;
+        }
+    }
+    
+
+    for(int i = 0; i < 7; i++)
+        this->cardArr[i] = newCardArr[i];
+    //富豪會把數字由大到小排列
+    for(int i = 0; i < 3; i++)
+    {
+        for(int j = 0; j < 3 - i - 1; j++)
+        {
+            if(stoi(this->cardArr[2 * j]->getValue()) - stoi(this->cardArr[2 * j + 2]->getValue()) > 0)
+                swapPtr(this->cardArr[2 * j], this->cardArr[2 * j + 2]);
+        }
+    }
+}
+
+int Rich::biddingChips(const int currChip)
+{
+    //all in
+    return this->chips;//要怎麼知道現在最少的籌碼有幾個
 }
 
 int main()
