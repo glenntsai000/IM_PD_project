@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <vector>
+
 using namespace std;
 
 #define NC "\e[0m"
@@ -77,7 +79,8 @@ protected:
     Card *cardArr[7];
     int totalChips;
     int chipBiddenThisRound;
-    bool bigOrSmall; // true for big, otherwise
+    bool bigOrSmall;      // true for big, otherwise
+    bool isFoldThisRound; // 棄牌 放棄本回合
     string name;
 
 public:
@@ -88,14 +91,18 @@ public:
     double calCard(); // 計算牌的大小
     void printAllCard();
     virtual void sortCard(){};
-    virtual int biddingChips(int currChip) = 0; // 前一人下注的籌碼
+    virtual int biddingChips(const int currChip, const int limitChip) = 0; // 前一人下注的籌碼
+    void printName();
+    friend class Game;
 };
 
 Character::Character(const string &name)
 {
     this->name = name;
-    this->totalChips = 0;
+    this->totalChips = 10;
+    this->chipBiddenThisRound = 0;
     this->bigOrSmall = false;
+    this->isFoldThisRound = false;
     for (int i = 0; i < 7; i++)
         this->cardArr[i] = nullptr;
 }
@@ -223,6 +230,11 @@ void Character::printAllCard()
     cout << endl;
 }
 
+void Character::printName()
+{
+    cout << this->name;
+}
+
 // 玩家
 class Player : public Character
 {
@@ -232,15 +244,31 @@ public:
     Player(const string &playername) : Character(playername){};
     ~Player(){};
     void sortCard(string order);
-    int biddingChips(const int currChip) { return 0; };
-    int biddingChips(const int currChip, const int inputChip);
+    int biddingChips(const int currChip, const int limitChip);
+    friend class Game;
 };
 
-int Player::biddingChips(const int currChip, const int inputChip)
+int Player::biddingChips(const int currChip, const int limitChip)
 {
     // throw error
-    cout << inputChip << endl;
-    return inputChip;
+    int lst = currChip - chipBiddenThisRound;
+    cout << "請進行下注: (請輸入" << currChip - chipBiddenThisRound << "~" << limitChip << "的值，若要放棄下注請輸入-1)" << endl;
+    int playerbid;
+    cin >> playerbid;
+
+    if (playerbid + this->chipBiddenThisRound < currChip && playerbid > 0)
+        playerbid = 0;
+    else if (playerbid > limitChip)
+        playerbid = limitChip;
+
+    this->chipBiddenThisRound += playerbid;
+
+    if (playerbid == -1)
+    {
+        this->isFoldThisRound = true;
+    }
+
+    return playerbid;
 }
 
 void Player::sortCard(string order)
@@ -281,7 +309,7 @@ public:
     ~Drunkard(){};
     void sortCard();
     bool _findNextIdx(bool isSymbol, int &idx);
-    int biddingChips(const int currChip); // 前一人下注的籌碼
+    int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼
 };
 
 bool Drunkard::_findNextIdx(bool isSymbol, int &idx)
@@ -364,9 +392,25 @@ void Drunkard::sortCard()
         this->cardArr[i] = newCardArr[i];
 }
 
-int Drunkard::biddingChips(const int currChip)
+// int Drunkard::biddingChips(const int currChip, const int limitChip)
+int Drunkard::biddingChips(const int currChip, const int limitChip)
 {
-    return rand() % (this->totalChips - currChip + 1) + currChip;
+    int lst = currChip - this->chipBiddenThisRound;
+
+    if (currChip == this->chipBiddenThisRound)
+    {
+        cout << "stop ";
+        return 0;
+    }
+
+    int bid = rand() % (limitChip - lst + 1) + lst;
+    // if (currChip < 7)
+    //     bid = 5;
+    // else
+    //     bid = 1;
+
+    this->chipBiddenThisRound += bid;
+    return bid;
 }
 
 class Rich : public Character
@@ -375,18 +419,18 @@ private:
     void swapPtr(Card *&p1, Card *&p2);
 
 public:
-    Rich(const string &name); // constructor
-    ~Rich();                  // destructor
+    Rich();    // constructor
+    ~Rich(){}; // destructor
     void sortCard();
     bool _findNextIdx(bool isSymbol, int &idx);
     int biddingChips(const int currChip);
 };
 
-Rich::Rich(const string &name) : Character(name)
+Rich::Rich() : Character("The rich")
 {
     this->totalChips += 10;  // defalut setting: the rich has ten more chips than other
     this->bigOrSmall = true; // 富豪喜歡賭大的
-}
+};
 
 void Rich::swapPtr(Card *&p1, Card *&p2)
 {
@@ -490,16 +534,14 @@ int Rich::biddingChips(const int currChip)
     return this->totalChips; // 要怎麼知道現在最少的籌碼有幾個
 }
 
-
-
 class Math : public Character
 {
 private:
 public:
-    Math(const std::string& n) : Character(n) {};
-    ~Math() {};
+    Math(const std::string &n) : Character(n){};
+    ~Math(){};
     // 數學家的下注邏輯
-    bool decideToBet() override
+    bool decideToBet()
     {
         double result = calculateOptimalValue();
         if (result == 19 or result == 20 or result == 21 or result == 22)
@@ -508,35 +550,35 @@ public:
     }
 
     // 下注籌碼數量
-    int betChips() override
+    int betChips()
     {
         double result = calculateOptimalValue();
         if (result == 19)
-            return chips * 0.76;
+            return totalChips * 0.76;
         if (result == 20)
-            return chips * 0.78;
+            return totalChips * 0.78;
         if (result == 21)
-            return chips * 0.77;
+            return totalChips * 0.77;
         if (result == 22)
-            return chips * 0.75;
+            return totalChips * 0.75;
     }
 
     // 數學家的出牌演算法
     double calculateOptimalValue()
     {
-        vector<Card*> numberCards; //數字卡牌
-        vector<Card*> symbolCards; //符號卡牌
+        vector<Card *> numberCards; // 數字卡牌
+        vector<Card *> symbolCards; // 符號卡牌
 
         // 將數字卡片和符號卡片分別放入對應的向量中
         for (int i = 0; i < 7; ++i)
         {
             if (cardArr[i] != nullptr)
             {
-                if (NumberCard* numCard = dynamic_cast<NumberCard*>(cardArr[i]))
+                if (NumberCard *numCard = dynamic_cast<NumberCard *>(cardArr[i]))
                 {
                     numberCards.push_back(numCard);
                 }
-                else if (SymbolCard* symCard = dynamic_cast<SymbolCard*>(cardArr[i]))
+                else if (SymbolCard *symCard = dynamic_cast<SymbolCard *>(cardArr[i]))
                 {
                     symbolCards.push_back(symCard);
                 }
@@ -599,40 +641,154 @@ public:
                     result = currentResult;
                 }
 
-            } while (next_permutation(numberCards.begin(), numberCards.end())); //產生所有數字卡牌的排列組合
+            } while (next_permutation(numberCards.begin(), numberCards.end())); // 產生所有數字卡牌的排列組合
 
-        } while (next_permutation(symbolCards.begin(), symbolCards.end())); //產生所有符號卡牌的排列組合
+        } while (next_permutation(symbolCards.begin(), symbolCards.end())); // 產生所有符號卡牌的排列組合
 
         return result;
     }
 };
 
-
-
 class Game
 {
 private:
-    Character *playerList[4];
-    Card *cardList[52];
-    int round;
-    int chipsInRoundBig;
-    int chipsInRoundSmall;
+    vector<Character *> playerList;
+    vector<Card *> cardList;
+    int roundN;
+    int chipsInRound;
+    int currChip;
+    int leastChips;
 
 public:
+    Game();
+    // ~Game()
+    // {
+    //     for (int i = 0; i < playerList.size(); i++)
+    //         delete playerList[i]; // this is needed to free the memory
+    // };
+    void addPlayer(Player &pyptr);
     void dealCard();
-    void printPublicCard(Character *player);
-    void bidChip();
+    void printPublicCard(Character *playerList);
+    void biddingPerRound(int rnd);
     void update();
     void printResult();
+    void printPlayerList();
 };
+
+Game::Game()
+{
+    playerList = {};
+    cardList = {nullptr};
+    roundN = 0;
+    chipsInRound = 0;
+    currChip = 0;
+    leastChips = 1000; // 下注最高限制
+}
+
+void Game::addPlayer(Player &pyptr)
+{
+    this->playerList.push_back(&pyptr);
+    Drunkard *d = new Drunkard();
+    this->playerList.push_back(d);
+    // cout << this->playerList[0]->name;
+    // cout << this->playerList.size();
+}
+
+void Game::biddingPerRound(int rnd)
+{
+    if (rnd == 0) // 基本下注1
+    {
+        chipsInRound = 0;
+        currChip = 0;
+        leastChips = 1000; // 這回合擁有最少籌碼的人的籌碼數 為本回合下注的最高限制數量
+        for (int i = 0; i < playerList.size(); i++)
+        {
+            this->playerList[i]->isFoldThisRound = false;
+            if (this->playerList[i]->totalChips < leastChips)
+                leastChips = this->playerList[i]->totalChips;
+        }
+
+        for (int i = 0; i < playerList.size(); i++)
+        {
+            this->playerList[i]->totalChips--;
+            chipsInRound++;
+            this->playerList[i]->chipBiddenThisRound++;
+        }
+        currChip = 1;
+    }
+
+    else // 第一次下注與第二次下注
+    {
+        int plus = 1;
+        // bool firstRndStart = true;
+        // if(rnd != 1)
+        //     firstRndStart = false;
+        do
+        {
+            for (int i = 0; i < playerList.size(); i++)
+            {
+                if (this->playerList[i]->isFoldThisRound == true)
+                    continue; // 已棄牌
+
+                cout << "目前下注最高數量, 最高限制下注數量: " << currChip << ", " << leastChips << endl;
+
+                // 加注
+                cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl;
+
+                int pyBidNum = this->playerList[i]->biddingChips(currChip, (leastChips - this->playerList[i]->chipBiddenThisRound));
+
+                if (pyBidNum == -1)
+                {
+                    cout << this->playerList[i]->name << "放棄這回合" << endl;
+                    continue;
+                }
+
+                cout << this->playerList[i]->name << " 加注: " << pyBidNum << endl;
+                cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl
+                     << endl;
+
+                currChip = this->playerList[i]->chipBiddenThisRound;
+                chipsInRound += pyBidNum;
+                this->playerList[i]->totalChips -= pyBidNum;
+                plus = pyBidNum;
+            }
+
+            for (int i = 0; i < playerList.size(); i++)
+            {
+                if (this->playerList[i]->isFoldThisRound == true)
+                    continue; // 已棄牌
+                cout << this->playerList[i]->name << " 目前手中籌碼總數: ";
+                cout << this->playerList[i]->totalChips << endl;
+            }
+            cout << endl;
+
+        } while (plus > 0);
+
+        cout << "\n";
+        cout << "本回合現在下注總數: " << chipsInRound << endl
+             << endl;
+    }
+};
+
+void Game::printPlayerList()
+{
+    for (int i = 0; i < playerList.size(); i++)
+    {
+        // this->playerList[i]->printName();
+        cout << this->playerList[i]->name;
+        cout << " ";
+    }
+}
 
 int main()
 {
     // main for test
-    // cout << "請輸入玩家名稱: ";
-    // string playerName;
+    cout << "請輸入玩家名稱: ";
+    string playerName = "player1";
     // cin >> playerName;
-    // Player py(playerName);
+    Player py(playerName);
+    py.printName();
+    cout << endl;
 
     Drunkard d;
     SymbolCard *c1 = new SymbolCard("+");
@@ -655,10 +811,13 @@ int main()
     d.printAllCard();
     cout << d.calCard() << endl;
 
-    // cout << "請進行下注: ";
-    // int playerbid;
-    // cin >> playerbid;
-    // py.biddingChips(3, playerbid);
+    Game G;
+    G.addPlayer(py);
+    G.biddingPerRound(0);
+    cout << "bid 1---------------------------" << endl;
+    G.biddingPerRound(1);
+    cout << "bid 2---------------------------" << endl;
+    G.biddingPerRound(2);
 
     // cout << "請輸入最終數學式: \n";
     // string cardOrder;
@@ -667,6 +826,5 @@ int main()
 
     // py.printAllCard();
     // cout << "數學式大小: " << py.calCard() << endl;
-
     return 0;
 }
