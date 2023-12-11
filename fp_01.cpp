@@ -256,6 +256,9 @@ void Character::printName()
     cout.unsetf(ios::right);
 }
 
+
+
+
 // 玩家
 class Player : public Character
 {
@@ -321,6 +324,9 @@ void Player::sortCard(string order)
         this->cardArr[i] = newCardArr[i];
     }
 }
+
+
+
 
 class Drunkard : public Character
 {
@@ -433,6 +439,9 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
     this->chipBiddenThisRound += bid;
     return bid;
 }
+
+
+
 
 class Rich : public Character
 {
@@ -555,7 +564,8 @@ int Rich::biddingChips(const int currChip, const int limitChip)
     return this->totalChips; // 要怎麼知道現在最少的籌碼有幾個
 }
 
-/*
+
+
 class Math : public Character
 {
 private:
@@ -670,7 +680,6 @@ public:
         return result;
     }
 };
-*/
 
 class Game
 {
