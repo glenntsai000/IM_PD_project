@@ -676,6 +676,7 @@ public:
     void printPlayerList();
 
     void gameStart();
+    void calChips();
 };
 
 Game::Game()
@@ -739,7 +740,7 @@ void Game::biddingPerRound(int rnd)
                 cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl;
 
                 int pyBidNum = this->playerList[i]->biddingChips(currChip, (leastChips - this->playerList[i]->chipBiddenThisRound));
-
+                //如果電腦沒籌碼可以下注了怎辦
                 if (pyBidNum == -1)
                 {
                     cout << this->playerList[i]->name << "放棄這回合" << endl;
@@ -813,6 +814,30 @@ void Game::gameStart()
         cout << "你的對手為：數學家、酒鬼、富豪" << endl;
     }
     //結束後跳回main新增player
+}
+
+void Game::calChips()
+{
+    cout << "[name] 目前籌碼數量：";
+    if(playerList[3]->totalChips == 0)
+        cout << "您的籌碼數量歸零 GAME OVER....." << endl;
+    else
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            playerList[i]->printName();
+            cout << ":" << playerList[i]->totalChips;
+        }
+        for(int i = 0; i < 4; i++)
+        {
+            if(playerList[i]->totalChips <= 0)
+            {
+                cout << "玩家 ";
+                playerList[i]->printName();
+                cout << " 籌碼數量歸零，退出遊戲。";
+            }
+        }
+    }
 }
 
 int main()
