@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdlib>
 #include <vector>
+#include <ctime>
 
 using namespace std;
 
@@ -423,7 +424,7 @@ public:
     ~Rich(){}; // destructor
     void sortCard();
     bool _findNextIdx(bool isSymbol, int &idx);
-    int biddingChips(const int currChip);
+    int biddingChips(const int currChip, const int limitChip);
 };
 
 Rich::Rich() : Character("The rich")
@@ -528,7 +529,7 @@ void Rich::sortCard()
     }
 }
 
-int Rich::biddingChips(const int currChip)
+int Rich::biddingChips(const int currChip, const int limitChip)
 {
     // all in
     return this->totalChips; // 要怎麼知道現在最少的籌碼有幾個
@@ -673,6 +674,9 @@ public:
     void update();
     void printResult();
     void printPlayerList();
+
+    void gameStart();
+    void calChips();
 };
 
 Game::Game()
@@ -736,7 +740,7 @@ void Game::biddingPerRound(int rnd)
                 cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl;
 
                 int pyBidNum = this->playerList[i]->biddingChips(currChip, (leastChips - this->playerList[i]->chipBiddenThisRound));
-
+                //如果電腦沒籌碼可以下注了怎辦
                 if (pyBidNum == -1)
                 {
                     cout << this->playerList[i]->name << "放棄這回合" << endl;
@@ -777,6 +781,62 @@ void Game::printPlayerList()
         // this->playerList[i]->printName();
         cout << this->playerList[i]->name;
         cout << " ";
+    }
+}
+
+void Game::gameStart()
+{
+    cout << "[遊戲名稱] 開始！" << endl;
+    Drunkard* d = new Drunkard();
+    Rich* r = new Rich();
+    Math* m = new Math(); //沒有複寫biddingChips函數
+    //隨機分配三個角色的順序，最後再加上player
+    int ran = rand()%3;
+    if(ran == 0)
+    {
+        this->playerList.push_back(d);
+        this->playerList.push_back(r);
+        this->playerList.push_back(m);
+        cout << "你的對手為：酒鬼、富豪、數學家" << endl;
+    }
+    else if(ran == 1)
+    {
+        this->playerList.push_back(r);
+        this->playerList.push_back(m);
+        this->playerList.push_back(d);
+        cout << "你的對手為：富豪、數學家、酒鬼" << endl;
+    }
+    else
+    {
+        this->playerList.push_back(m);
+        this->playerList.push_back(d);
+        this->playerList.push_back(r);
+        cout << "你的對手為：數學家、酒鬼、富豪" << endl;
+    }
+    //結束後跳回main新增player
+}
+
+void Game::calChips()
+{
+    cout << "[name] 目前籌碼數量：";
+    if(playerList[3]->totalChips == 0)
+        cout << "您的籌碼數量歸零 GAME OVER....." << endl;
+    else
+    {
+        for(int i = 0; i < 4; i++)
+        {
+            playerList[i]->printName();
+            cout << ":" << playerList[i]->totalChips;
+        }
+        for(int i = 0; i < 4; i++)
+        {
+            if(playerList[i]->totalChips <= 0)
+            {
+                cout << "玩家 ";
+                playerList[i]->printName();
+                cout << " 籌碼數量歸零，退出遊戲。";
+            }
+        }
     }
 }
 
