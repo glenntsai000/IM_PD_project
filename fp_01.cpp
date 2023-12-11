@@ -331,11 +331,11 @@ void Player::sortCard(string order)
 class Drunkard : public Character
 {
 private:
+    bool _findNextIdx(bool isSymbol, int &idx);
 public:
     Drunkard() : Character("Drunkard"){};
     ~Drunkard(){};
     void sortCard();
-    bool _findNextIdx(bool isSymbol, int &idx);
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼
 };
 
@@ -690,7 +690,7 @@ private:
     int chipsInRound;
     int currChip;
     int leastChips;
-    void _shuffle();
+    void _shuffle(int startIdx);
 public:
     Game();
     // ~Game()
@@ -708,7 +708,7 @@ public:
     void update();
     void printResult();
     void printPlayerList();
-
+    void enemySort();
     void gameStart();
     void calChips();
 };
@@ -752,15 +752,15 @@ void Game::initCardList()
         NumberCard* _nc = new NumberCard(i, "W");
         this->cardList.push_back(_nc);
     }
-    this->_shuffle();
+    this->_shuffle(0);
 }
 
-void Game::_shuffle()
+void Game::_shuffle(int startIdx)
 {
-    const int shuffleTime = 9507014;
+    const int shuffleTime = 2 * totalCardInGame;
     for(int i = 0; i < shuffleTime; i++){
-        int idx1 = rand() % totalCardInGame;
-        int idx2 = rand() % totalCardInGame;
+        int idx1 = rand() % (totalCardInGame - startIdx + 1) + startIdx;
+        int idx2 = rand() % (totalCardInGame - startIdx + 1) + startIdx;
         Card* temp = this->cardList[idx1];
         this->cardList[idx1] = this->cardList[idx2];
         this->cardList[idx2] = temp;
@@ -786,16 +786,17 @@ void Game::dealCard(int rnd)
             playerList[i]->addCard(this->cardList[cardListIdx]);
             cardListIdx++;
         }
-
+        _shuffle(cardListIdx);
         for(int i = 0; i < this->playerList.size(); i++){
             playerList[i]->addCard(this->cardList[cardListIdx]);
             cardListIdx++;
         }
-
+        _shuffle(cardListIdx);
         for(int i = 0; i < this->playerList.size(); i++){
             playerList[i]->addCard(this->cardList[cardListIdx]);
             cardListIdx++;
         }
+        _shuffle(cardListIdx);
     }
     else if(rnd == 2){
         for(int i = 0; i < this->playerList.size(); i++){
@@ -900,6 +901,13 @@ void Game::printPlayerList()
     cout << "===============" << endl;
 }
 
+void Game::enemySort()
+{
+    for(int i = 1; i < this->playerList.size(); i++){
+        this->playerList[i]->sortCard();
+    }
+}
+
 void Game::gameStart()
 {
     cout << "[遊戲名稱] 開始！" << endl;
@@ -970,14 +978,17 @@ int main()
     G.printPlayerList();
     G.initCardList();
     G.dealCard(0);
-    G.biddingPerRound(0);
+    //G.biddingPerRound(0);
     G.dealCard(1);
-    cout << "bid 1---------------------------" << endl;
-    G.biddingPerRound(1);
+    //cout << "bid 1---------------------------" << endl;
+    //G.biddingPerRound(1);
     G.dealCard(2);
-    cout << "bid 2---------------------------" << endl;
-    G.biddingPerRound(2);
+    //cout << "bid 2---------------------------" << endl;
+    //G.biddingPerRound(2);
     G.printPublicCard();
+    G.enemySort();
+    G.printPublicCard();
+    
 
     // cout << "請輸入最終數學式: \n";
     // string cardOrder;
