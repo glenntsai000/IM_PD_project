@@ -27,9 +27,12 @@ public:
     virtual ~Card(){};
     bool isSymbolCard() {return this->isSymbol;}
     bool getVisibilty() {return this->visibility;};
-    virtual string getValue() = 0;
+    virtual string getValue() const = 0;
+    virtual string getColor() const = 0;
     virtual void printCard() = 0;
     virtual void setVisibility(bool isPublid) = 0;
+    virtual bool operator>(const Card& c) const = 0;
+    virtual bool operator<(const Card& c) const = 0;
 };
 
 class SymbolCard : public Card
@@ -39,12 +42,15 @@ private:
 
 public:
     SymbolCard(string symbol) : Card(true), symbol(symbol){};
-    string getValue();
+    string getValue() const;
     void printCard();
     void setVisibility(bool isPublid) {this->visibility = true;};
+    bool operator>(const Card& c) const {return false;};
+    bool operator<(const Card& c) const {return false;};
+    string getColor() const {return "W";};
 };
 
-string SymbolCard::getValue()
+string SymbolCard::getValue() const
 {
     return this->symbol;
 }
@@ -61,13 +67,16 @@ private:
     string color;
 public:
     NumberCard(int num, string color) : Card(false), num(num), color(color) {};
-    string getValue();
+    string getValue() const;
     void printCard();
     void setVisibility(bool isPublic) {this->visibility = isPublic;};
     bool getVisibility() {return this->visibility;};
+    bool operator>(const Card& c) const;
+    bool operator<(const Card& c) const;
+    string getColor() const { return this->color;};
 };
 
-string NumberCard::getValue()
+string NumberCard::getValue() const
 {
     return to_string(this->num);
 }
@@ -82,6 +91,35 @@ void NumberCard::printCard()
         cout << BLUE << "|" << this->num << "|" << NC;
     else
         cout << "|" << this->num << "|";
+}
+
+bool NumberCard::operator>(const Card& c) const
+{
+    if(this->getValue() > c.getValue()){
+        return true;
+    }
+    else if(this->getValue() == c.getValue()){
+        if(this->getColor().compare("R") == 0){
+            return true;
+        }
+        else if(this->getColor().compare("G") == 0 && c.getColor().compare("R") != 0){
+            return true;
+        }
+        else if(this->getColor().compare("B") == 0 && c.getColor().compare("R") != 0 && c.getColor().compare("G") != 0){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+    else{
+        return false;
+    }
+}
+
+bool NumberCard::operator<(const Card& c) const
+{
+    return !(*this > c);
 }
 
 class Character
@@ -978,16 +1016,16 @@ int main()
     G.printPlayerList();
     G.initCardList();
     G.dealCard(0);
-    //G.biddingPerRound(0);
+    G.biddingPerRound(0);
     G.dealCard(1);
-    //cout << "bid 1---------------------------" << endl;
-    //G.biddingPerRound(1);
+    cout << "bid 1---------------------------" << endl;
+    G.biddingPerRound(1);
     G.dealCard(2);
-    //cout << "bid 2---------------------------" << endl;
-    //G.biddingPerRound(2);
+    cout << "bid 2---------------------------" << endl;
+    G.biddingPerRound(2);
     G.printPublicCard();
-    G.enemySort();
-    G.printPublicCard();
+    //G.enemySort();
+    //G.printPublicCard();
     
 
     // cout << "請輸入最終數學式: \n";
