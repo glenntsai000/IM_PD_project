@@ -16,7 +16,7 @@ using namespace std;
 
 const int initialTotalChips = 10;
 const int cardInHand = 7;
-const int totalCardInGame = 44;
+const int totalCardInGame = 40;
 
 class Card
 {
@@ -145,6 +145,7 @@ public:
     virtual void sortCard(string order) {}; // Implement?
     virtual int biddingChips(const int currChip, const int limitChip) = 0; // 前一人下注的籌碼
     virtual void setBigOrSmall(bool isBig) {this->bigOrSmall = isBig;};
+    virtual void printWinner() = 0;
 
     friend class Game;
 };
@@ -299,9 +300,10 @@ public:
     // Player(const string& playername) : Character("playername") {};
     Player(const string &playername) : Character(playername){};
     ~Player(){};
-    void sortCard(string order);
+    void sortCard();
     int biddingChips(const int currChip, const int limitChip);
     void printHandCard(); // 使玩家可以印出隱藏牌
+    void printWinner();
     friend class Game;
 };
 
@@ -328,22 +330,26 @@ int Player::biddingChips(const int currChip, const int limitChip)
     return playerbid;
 }
 
-void Player::sortCard(string order)
+void Player::sortCard()
 {
-    int cnt = order.length();
-    Card *newCardArr[cardInHand];
+    
+    cout << "請輸入最終數學式: \n";
+    string cardOrder;
+    cin >> cardOrder;
+
+    int cnt = cardOrder.length();
+    Card *newCardArr[7];
     // cout << order<<endl;
     for (int i = 0; i < cnt; i++)
     {
         // cout << order[i] << " ";
-        string str(1, order[i]);
+        string str(1, cardOrder[i]);
 
         // cout << endl;
         for (int j = 0; j < cnt; j++)
         {
             if (this->cardArr[j]->getValue() == str)
             {
-                newCardArr[i] = this->cardArr[j];
                 newCardArr[i] = this->cardArr[j];
                 this->cardArr[j] = new SymbolCard("g");
                 break;
@@ -353,7 +359,7 @@ void Player::sortCard(string order)
 
     for (int i = 0; i < cnt; i++)
     {
-        delete this->cardArr[i];
+        //delete this->cardArr[i];
         this->cardArr[i] = newCardArr[i];
     }
 }
@@ -389,7 +395,10 @@ void Player::printHandCard()
     cout << setw(46) << setfill('-')  << "" << setfill(' ') << endl;
 }
 
-
+void Player::printWinner()
+{
+    cout << "恭喜你成為本次遊戲的贏家！" << endl;
+}
 
 class Drunkard : public Character
 {
@@ -400,6 +409,7 @@ public:
     ~Drunkard() {};
     void sortCard();
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼
+    void printWinner();
 };
 
 bool Drunkard::_findNextIdx(bool isSymbol, int &idx)
@@ -486,10 +496,8 @@ void Drunkard::sortCard()
 int Drunkard::biddingChips(const int currChip, const int limitChip)
 {
     int lst = currChip - this->chipBiddenThisRound;
-
     if (currChip == this->chipBiddenThisRound)
     {
-        cout << "stop ";
         return 0;
     }
 
@@ -503,7 +511,10 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
     return bid;
 }
 
-
+void Drunkard::printWinner()
+{
+    cout << "你輸了..." << '\n' << "最終贏家為： " << this->name<< endl;
+}
 
 
 class Rich : public Character
@@ -517,6 +528,7 @@ public:
     void sortCard();
     bool _findNextIdx(bool isSymbol, int &idx);
     int biddingChips(const int currChip, const int limitChip);
+    void printWinner();
 };
 
 Rich::Rich() : Character("The rich")
@@ -624,10 +636,14 @@ void Rich::sortCard()
 int Rich::biddingChips(const int currChip, const int limitChip)
 {
     // all in
-    return this->totalChips; // 要怎麼知道現在最少的籌碼有幾個
+    this->chipBiddenThisRound += limitChip;
+    return limitChip; // 要怎麼知道現在最少的籌碼有幾個
 }
 
-
+void Rich::printWinner()
+{
+    cout << "你輸了..." << '\n' << "最終贏家為： " << this->name<< endl;
+}
 
 class Math : public Character
 {
@@ -638,36 +654,50 @@ public:
     void sortCard();
     //bool _findNextIdx(bool isSymbol, int& idx);
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼(要先呼叫過sortCard才能呼叫biddingChips)
+    void printWinner();
 };
 
 int Math::biddingChips(const int currChip, const int limitChip)
 {
-    double result = this->calCard(); // 先取optimal solution(要先呼叫過sortCard才能呼叫biddingChips)
-
     int bid = 0;
-    double difference = 0;
-    double target = 0;
+    if (this->totalChips > 0)//還有chips
+    {
+        if (this->cardArr.size() < 7)
+        {
+            bid = currChip - chipBiddenThisRound; // 下最少
+            this->chipBiddenThisRound += bid; 
+        }
+        else
+        {
+            double result = this->calCard(); // 先取optimal solution(要先呼叫過sortCard才能呼叫biddingChips)
 
-    if (this->bigOrSmall == true)
-        target = 20;
+            bid = 0;
+            double difference = 0;
+            double target = 0;
+
+            if (this->bigOrSmall == true)
+                target = 20;
+            else
+                target = 1;
+
+            difference = abs(result - target);// 計算跟target的差距
+
+            if (difference <= 3)
+                bid = limitChip;// difference < 3 就 all in
+            else if (difference > 3 and difference <= 6)
+                bid = ((currChip - chipBiddenThisRound) + limitChip) / 2; // 3 <  difference <= 6 就取中間
+            else if (difference > 6 and difference <= 10)
+                bid = currChip - chipBiddenThisRound; // 6 <  difference <= 10 就下最少
+            else
+                this->isFoldThisRound = true;// difference > 10 就棄牌
+
+            // 沒棄牌
+            if (this->isFoldThisRound == false)
+                this->chipBiddenThisRound += bid;
+        }
+    }
     else
-        target = 1;
-
-    difference = abs(result - target);// 計算跟target的差距
-
-    if (difference <= 3)
-        bid = limitChip;// difference < 3 就 all in
-    else if (difference > 3 and difference <= 6)
-        bid = ((currChip - chipBiddenThisRound) + limitChip) / 2; // 3 <  difference <= 6 就取中間
-    else if (difference > 6 and difference <= 10)
-        bid = currChip - chipBiddenThisRound; // 6 <  difference <= 10 就下最少
-    else
-        this->isFoldThisRound = true;// difference > 10 就棄牌
-
-    // 棄牌
-    if (this->isFoldThisRound == false)
-        this->chipBiddenThisRound += bid;
-
+        this->isFoldThisRound = true;
     return bid;
 }
 
@@ -803,9 +833,14 @@ void Math::sortCard()
     // 複製更新後的卡牌陣列回原始 cardArr
     for (size_t i = 0; i < 7; i++)
     {
-        delete cardArr[i];  // 釋放原先的卡牌
         cardArr[i] = updatedCardArr[i];  // 複製新的卡牌
     }
+
+}
+
+void Math::printWinner()
+{
+    cout << "你輸了..." << '\n' << "最終贏家為： " << this->name<< endl;
 }
 
 class Game
@@ -836,7 +871,7 @@ public:
     void printResult();
     void printPlayerList();
     void enemySort();
-    void gameStart();
+    void gameStart(Player &pyptr);
     void calChips();
     void decisionInput();
     void printFinalResult(const string& playerName);
@@ -856,30 +891,30 @@ Game::Game()
 void Game::addPlayer(Player &pyptr)
 {
     this->playerList.push_back(&pyptr);
-    Drunkard *d = new Drunkard();
-    this->playerList.push_back(d);
+    //Drunkard *d = new Drunkard();
+    //this->playerList.push_back(d);
     // cout << this->playerList[0]->name;
     // cout << this->playerList.size();
 }
 
 void Game::initCardList()
 {
-    for(int i = 0; i < 11; i++){
+    for(int i = 0; i < 10; i++){
         NumberCard* _nc = new NumberCard(i, "R");
         this->cardList.push_back(_nc);
     }
 
-    for(int i = 0; i < 11; i++){
+    for(int i = 0; i < 10; i++){
         NumberCard* _nc = new NumberCard(i, "G");
         this->cardList.push_back(_nc);
     }
 
-    for(int i = 0; i < 11; i++){
+    for(int i = 0; i < 10; i++){
         NumberCard* _nc = new NumberCard(i, "B");
         this->cardList.push_back(_nc);
     }
 
-    for(int i = 0; i < 11; i++){
+    for(int i = 0; i < 10; i++){
         NumberCard* _nc = new NumberCard(i, "W");
         this->cardList.push_back(_nc);
     }
@@ -917,17 +952,17 @@ void Game::dealCard(int rnd)
             playerList[i]->addCard(this->cardList[cardListIdx]);
             cardListIdx++;
         }
-        _shuffle(cardListIdx);
+        //_shuffle(cardListIdx);
         for(int i = 0; i < this->playerList.size(); i++){
             playerList[i]->addCard(this->cardList[cardListIdx]);
             cardListIdx++;
         }
-        _shuffle(cardListIdx);
+        //_shuffle(cardListIdx);
         for(int i = 0; i < this->playerList.size(); i++){
             playerList[i]->addCard(this->cardList[cardListIdx]);
             cardListIdx++;
         }
-        _shuffle(cardListIdx);
+        //_shuffle(cardListIdx);
     }
     else if(rnd == 2){
         for(int i = 0; i < this->playerList.size(); i++){
@@ -1011,7 +1046,6 @@ void Game::biddingPerRound(int rnd)
                 cout << this->playerList[i]->totalChips << endl;
             }
             cout << endl;
-
         } while (plus > 0);
 
         cout << "\n";
@@ -1041,31 +1075,33 @@ void Game::enemySort()
     }
 }
 
-void Game::gameStart()
+void Game::gameStart(Player &pyptr)
 {
     cout << "[遊戲名稱] 開始！" << endl;
     Drunkard* d = new Drunkard();
     Rich* r = new Rich();
-    //Math* m = new Math(); //沒有複寫biddingChips函數
+    Math* m = new Math("Math"); //沒有複寫biddingChips函數
     //隨機分配三個角色的順序，最後再加上player
-    int ran = rand()%3;
+    this->addPlayer(pyptr);
+    //int ran = rand()%3;
+    int ran = 0;
     if(ran == 0)
     {
         this->playerList.push_back(d);
         this->playerList.push_back(r);
-        //this->playerList.push_back(m);
+        this->playerList.push_back(m);
         cout << "你的對手為：酒鬼、富豪、數學家" << endl;
     }
     else if(ran == 1)
     {
         this->playerList.push_back(r);
-        //this->playerList.push_back(m);
+        this->playerList.push_back(m);
         this->playerList.push_back(d);
         cout << "你的對手為：富豪、數學家、酒鬼" << endl;
     }
     else
     {
-        //this->playerList.push_back(m);
+        this->playerList.push_back(m);
         this->playerList.push_back(d);
         this->playerList.push_back(r);
         cout << "你的對手為：數學家、酒鬼、富豪" << endl;
@@ -1100,8 +1136,8 @@ void Game::calChips()
 void Game::printResult()
 {
     //計算大家的結果，找出贏的人
-    double playerValue[4];
-    for (int i = 0; i < 4; i++)
+    double playerValue[totalPlayerNum];
+    for (int i = 0; i < totalPlayerNum; i++)
         playerValue[i] = playerList[i]->calCard();
 
 
@@ -1113,7 +1149,7 @@ void Game::printResult()
     double closestBigDifference = numeric_limits<double>::infinity();
     double closestSmallDifference = numeric_limits<double>::infinity();
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < totalPlayerNum; i++)
     {
         double targetValue = (playerList[i]->bigOrSmall) ? 20.0 : 1.0;
         double difference = abs(playerValue[i] - targetValue);
@@ -1194,11 +1230,11 @@ void Game::decisionInput()
 
     playerList[0]->setBigOrSmall(bidDirection);
 
-    cout << "請輸入最終數學式：";
-    string cardOrder;
-    cin.ignore(); // 忽略前一個輸入中的換行符號
-    getline(cin, cardOrder);
-    playerList[0]->sortCard(cardOrder);
+    //cout << "請輸入最終數學式：";
+    //string cardOrder;
+    //cin.ignore(); // 忽略前一個輸入中的換行符號
+    //getline(cin, cardOrder);
+    playerList[0]->sortCard();
 }
 
 void Game::printFinalResult(const string& playerName)
@@ -1206,6 +1242,7 @@ void Game::printFinalResult(const string& playerName)
     //潛在問題：玩家名字和電腦角色名字相同
     Character* winner = nullptr;
     int winnerChips = 0;
+    //int winner = 0;
     for(int i = 0; i < totalPlayerNum; i++)
     {
         if(playerList[i]->totalChips > winnerChips)
@@ -1231,20 +1268,25 @@ int main()
     py.printName();
     cout << endl;
     Game G;
-    G.addPlayer(py);
+    G.gameStart(py);
+
     G.printPlayerList();
+
     G.initCardList();
     G.dealCard(0);
-    //G.biddingPerRound(0);
+    G.biddingPerRound(0);
     G.dealCard(1);
     cout << "bid 1---------------------------" << endl;
-    //G.biddingPerRound(1);
+    G.biddingPerRound(1);
     G.dealCard(2);
     cout << "bid 2---------------------------" << endl;
-    //G.biddingPerRound(2);
+    G.biddingPerRound(2);
     G.printPlayersCard();
     G.enemySort();
-    
+    //G.printPlayersCard();
+    G.decisionInput();
+    G.printResult();
+    G.printPlayerList();
 
     // cout << "請輸入最終數學式: \n";
     // string cardOrder;
