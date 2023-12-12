@@ -27,7 +27,7 @@ public:
     Card(bool isSymbol) : isSymbol(isSymbol), visibility(true) {};
     virtual ~Card(){};
     bool isSymbolCard() {return this->isSymbol;}
-    bool getVisibilty() {return this->visibility;};
+    bool getVisibility() {return this->visibility;};
     virtual string getValue() const = 0;
     virtual string getColor() const = 0;
     virtual void printCard() = 0;
@@ -137,14 +137,15 @@ public:
     virtual ~Character();          // destructor
     void addCard(Card *c);
     void swapCard(Card *c1, Card *c2);
+    void printName();
+    int getTotalChips() {return this->totalChips;};
     double calCard(); // 計算牌的大小
-    void printAllCard();
-    void printPublicCard();
+    virtual void printHandCard();
     virtual void sortCard(){};
     virtual void sortCard(string order) {}; // Implement?
     virtual int biddingChips(const int currChip, const int limitChip) = 0; // 前一人下注的籌碼
     virtual void setBigOrSmall(bool isBig) {this->bigOrSmall = isBig;};
-    void printName();
+
     friend class Game;
 };
 
@@ -264,27 +265,19 @@ double Character::calCard()
     return value;
 }
 
-void Character::printAllCard()
+void Character::printHandCard()
 {
-    this->printName();
-    cout << " : ";
+    cout << setw(10) << this->name << " : ";
     for (int i = 0; i < this->cardArr.size(); i++)
     {
-        this->cardArr[i]->printCard();
-        cout << " ";
-    }
-    cout << endl;
-}
-
-void Character::printPublicCard()
-{
-    this->printName();
-    cout << " : ";
-    for (int i = 0; i < this->cardArr.size(); i++)
-    {
-        if(this->cardArr[i]->getVisibilty() == true){
+        if(this->cardArr[i]->getVisibility() == true){
+            // Public card
             this->cardArr[i]->printCard();
             cout << " ";
+        }
+        else{
+            // Hidden card : |?|
+            cout << "|?| ";
         }
     }
     cout << endl;
@@ -292,9 +285,7 @@ void Character::printPublicCard()
 
 void Character::printName()
 {
-    cout.setf(ios::right);
-    cout << setw(12) << this->name;
-    cout.unsetf(ios::right);
+    cout << this->name;
 }
 
 
@@ -310,6 +301,7 @@ public:
     ~Player(){};
     void sortCard(string order);
     int biddingChips(const int currChip, const int limitChip);
+    void printHandCard(); // 使玩家可以印出隱藏牌
     friend class Game;
 };
 
@@ -366,6 +358,36 @@ void Player::sortCard(string order)
     }
 }
 
+void Player::printHandCard()
+{
+    cout << "-------------" << setw(10) << this->name << setw(10) << setiosflags(ios::left) << "'s hand" << resetiosflags(ios::left) << "-------------" << endl;
+    cout << setw(13) << "Hand : ";
+    for (int i = 0; i < this->cardArr.size(); i++)
+    {
+        this->cardArr[i]->printCard();
+        cout << " ";
+    }
+    cout << endl;
+    cout << setw(13) << "Public : ";
+    for (int i = 0; i < this->cardArr.size(); i++)
+    {
+        if(this->cardArr[i]->getVisibility() == true){
+            this->cardArr[i]->printCard();
+            cout << " ";
+        }
+    }
+    cout << endl;
+    cout << setw(13) << "Hidden : ";
+    for (int i = 0; i < this->cardArr.size(); i++)
+    {
+        if(this->cardArr[i]->getVisibility() == false){
+            this->cardArr[i]->printCard();
+            cout << " ";
+        }
+    }
+    cout << endl;
+    cout << setw(46) << setfill('-')  << "" << setfill(' ') << endl;
+}
 
 
 
@@ -649,7 +671,6 @@ int Math::biddingChips(const int currChip, const int limitChip)
     return bid;
 }
 
-
 // 數學家的出牌演算法：找出optimal solution
 void Math::sortCard()
 {
@@ -809,7 +830,7 @@ public:
     void initCardList();
     void dealCard(int rnd);
     //
-    void printPublicCard();
+    void printPlayersCard();
     void biddingPerRound(int rnd);
     void update();
     void printResult();
@@ -913,10 +934,10 @@ void Game::dealCard(int rnd)
     }
 }
 
-void Game::printPublicCard()
+void Game::printPlayersCard()
 {
     for(int i = 0 ; i < this->playerList.size(); i++){
-        this->playerList[i]->printPublicCard();
+        this->playerList[i]->printHandCard();
     }
 }
 
@@ -998,14 +1019,16 @@ void Game::biddingPerRound(int rnd)
 
 void Game::printPlayerList()
 {
-    cout << "==Player List==" << endl;
+    cout << "===Player List===" << endl;
     for (int i = 0; i < playerList.size(); i++)
     {
+        cout << setw(10);
         this->playerList[i]->printName();
         //cout << this->playerList[i]->name;
+        cout << " : " << setw(4) << this->playerList[i]->getTotalChips();
         cout << endl;
     }
-    cout << "===============" << endl;
+    cout << "=================" << endl;
 }
 
 void Game::enemySort()
@@ -1189,16 +1212,15 @@ int main()
     G.printPlayerList();
     G.initCardList();
     G.dealCard(0);
-    G.biddingPerRound(0);
+    //G.biddingPerRound(0);
     G.dealCard(1);
     cout << "bid 1---------------------------" << endl;
-    G.biddingPerRound(1);
+    //G.biddingPerRound(1);
     G.dealCard(2);
     cout << "bid 2---------------------------" << endl;
-    G.biddingPerRound(2);
-    G.printPublicCard();
-    //G.enemySort();
-    //G.printPublicCard();
+    //G.biddingPerRound(2);
+    G.printPlayersCard();
+    G.enemySort();
     
 
     // cout << "請輸入最終數學式: \n";
