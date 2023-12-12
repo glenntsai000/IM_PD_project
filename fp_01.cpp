@@ -132,6 +132,7 @@ protected:
     bool bigOrSmall;      // true for big, otherwise
     bool isFoldThisRound; // 棄牌 放棄本回合
     string name;
+    bool isAlive;
 public:
     Character(const string &name); // constructor
     virtual ~Character();          // destructor
@@ -158,6 +159,7 @@ Character::Character(const string &name)
     this->bigOrSmall = false;
     this->isFoldThisRound = false;
     this->cardArr.reserve(cardInHand);
+    this->isAlive = true;
 }
 
 Character::~Character()
@@ -405,12 +407,17 @@ class Drunkard : public Character
 private:
     bool _findNextIdx(bool isSymbol, int &idx);
 public:
-    Drunkard() : Character("Drunkard"){};
+    Drunkard();
     ~Drunkard() {};
     void sortCard();
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼
     void printWinner();
 };
+
+Drunkard::Drunkard() : Character("Drunkard")
+{
+    this->bigOrSmall = rand() % 2;
+}
 
 bool Drunkard::_findNextIdx(bool isSymbol, int &idx)
 {
@@ -527,8 +534,9 @@ public:
     ~Rich(){}; // destructor
     void sortCard();
     bool _findNextIdx(bool isSymbol, int &idx);
-    int biddingChips(const int currChip, const int limitChip);
+    int biddingChips(const int currChip, const int limitChip); // need to implment
     void printWinner();
+    void throwSymbolCard(); // need to implment
 };
 
 Rich::Rich() : Character("The rich")
@@ -874,7 +882,7 @@ public:
     void gameStart(Player &pyptr);
     void calChips();
     void decisionInput();
-    void printFinalResult(const string& playerName);
+    void printFinalResult();
 };
 
 const int totalPlayerNum = 4;
@@ -981,6 +989,7 @@ void Game::printPlayersCard()
 
 void Game::biddingPerRound(int rnd)
 {
+    
     if (rnd == 0) // 基本下注1
     {
         chipsInRound = 0;
@@ -988,16 +997,22 @@ void Game::biddingPerRound(int rnd)
         leastChips = 1000; // 這回合擁有最少籌碼的人的籌碼數 為本回合下注的最高限制數量
         for (int i = 0; i < playerList.size(); i++)
         {
-            this->playerList[i]->isFoldThisRound = false;
-            if (this->playerList[i]->totalChips < leastChips)
-                leastChips = this->playerList[i]->totalChips;
+            if(this->playerList[i]->isAlive)
+            {
+                this->playerList[i]->isFoldThisRound = false;
+                if (this->playerList[i]->totalChips < leastChips)
+                    leastChips = this->playerList[i]->totalChips;
+            }
         }
 
         for (int i = 0; i < playerList.size(); i++)
         {
-            this->playerList[i]->totalChips--;
-            chipsInRound++;
-            this->playerList[i]->chipBiddenThisRound++;
+            if(this->playerList[i]->isAlive)
+            {
+                this->playerList[i]->totalChips--;
+                chipsInRound++;
+                this->playerList[i]->chipBiddenThisRound++;
+            }
         }
         currChip = 1;
     }
@@ -1012,38 +1027,44 @@ void Game::biddingPerRound(int rnd)
         {
             for (int i = 0; i < playerList.size(); i++)
             {
-                if (this->playerList[i]->isFoldThisRound == true)
-                    continue; // 已棄牌
-
-                cout << "目前下注最高數量, 最高限制下注數量: " << currChip << ", " << leastChips << endl;
-
-                // 加注
-                cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl;
-
-                int pyBidNum = this->playerList[i]->biddingChips(currChip, (leastChips - this->playerList[i]->chipBiddenThisRound));
-                //如果電腦沒籌碼可以下注了怎辦
-                if (pyBidNum == -1)
+                if(this->playerList[i]->isAlive)
                 {
-                    cout << this->playerList[i]->name << "放棄這回合" << endl;
-                    continue;
+                    if (this->playerList[i]->isFoldThisRound == true)
+                        continue; // 已棄牌
+
+                    cout << "目前下注最高數量, 最高限制下注數量: " << currChip << ", " << leastChips << endl;
+
+                    // 加注
+                    cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl;
+
+                    int pyBidNum = this->playerList[i]->biddingChips(currChip, (leastChips - this->playerList[i]->chipBiddenThisRound));
+                    //如果電腦沒籌碼可以下注了怎辦
+                    if (pyBidNum == -1)
+                    {
+                        cout << this->playerList[i]->name << "放棄這回合" << endl;
+                        continue;
+                    }
+
+                    cout << this->playerList[i]->name << " 加注: " << pyBidNum << endl;
+                    cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl
+                            << endl;
+
+                    currChip = this->playerList[i]->chipBiddenThisRound;
+                    chipsInRound += pyBidNum;
+                    this->playerList[i]->totalChips -= pyBidNum;
+                    plus = pyBidNum;
                 }
-
-                cout << this->playerList[i]->name << " 加注: " << pyBidNum << endl;
-                cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl
-                     << endl;
-
-                currChip = this->playerList[i]->chipBiddenThisRound;
-                chipsInRound += pyBidNum;
-                this->playerList[i]->totalChips -= pyBidNum;
-                plus = pyBidNum;
             }
 
             for (int i = 0; i < playerList.size(); i++)
             {
-                if (this->playerList[i]->isFoldThisRound == true)
-                    continue; // 已棄牌
-                cout << this->playerList[i]->name << " 目前手中籌碼總數: ";
-                cout << this->playerList[i]->totalChips << endl;
+                if(this->playerList[i]->isAlive)
+                {
+                    if (this->playerList[i]->isFoldThisRound == true)
+                        continue; // 已棄牌
+                    cout << this->playerList[i]->name << " 目前手中籌碼總數: ";
+                    cout << this->playerList[i]->totalChips << endl;
+                }
             }
             cout << endl;
         } while (plus > 0);
@@ -1128,6 +1149,7 @@ void Game::calChips()
                 cout << "玩家 ";
                 playerList[i]->printName();
                 cout << " 籌碼數量歸零，退出遊戲。";
+                playerList[i]->isAlive = false;
             }
         }
     }
@@ -1237,7 +1259,7 @@ void Game::decisionInput()
     playerList[0]->sortCard();
 }
 
-void Game::printFinalResult(const string& playerName)
+void Game::printFinalResult()
 {
     //潛在問題：玩家名字和電腦角色名字相同
     Character* winner = nullptr;
@@ -1252,10 +1274,7 @@ void Game::printFinalResult(const string& playerName)
             //尚未考慮同樣籌碼數要看顏色
         }
     }
-    if(winner->name == playerName)
-        cout << "恭喜你成為本次贏家" << endl;
-    else
-        cout << "你輸了..." << '\n' << "最終贏家為： " << winner->name << endl;
+    winner->printWinner();
 }
 
 int main()
@@ -1287,13 +1306,5 @@ int main()
     G.decisionInput();
     G.printResult();
     G.printPlayerList();
-
-    // cout << "請輸入最終數學式: \n";
-    // string cardOrder;
-    // cin >> cardOrder;
-    // py.sortCard(cardOrder);
-
-    // py.printAllCard();
-    // cout << "數學式大小: " << py.calCard() << endl;
     return 0;
 }
