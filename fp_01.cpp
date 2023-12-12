@@ -1162,7 +1162,8 @@ void Game::gameStart(Player &pyptr)
     Math* m = new Math("Math"); //沒有複寫biddingChips函數
     //隨機分配三個角色的順序，最後再加上player
     this->addPlayer(pyptr);
-    int ran = rand()%3;
+    //int ran = rand()%3;
+    int ran = 0;
     if(ran == 0)
     {
         this->playerList.push_back(d);
@@ -1342,18 +1343,20 @@ void Game::printResult()
 
 void Game::decisionInput()
 {
-    //第二輪下注結束
-    bool bidDirection = true;
-    char input;
-    cout << "請決定賭大 / 小，並輸入您的最終數學式" << endl;
-    cout << "輸入賭注方：(B / S)";
-    cin >> input;
-    if (input == 'S')
-        bidDirection = false;
+    if(this->playerList[0]->isAlive == true){
+        //第二輪下注結束
+        bool bidDirection = true;
+        char input;
+        cout << "請決定賭大 / 小，並輸入您的最終數學式" << endl;
+        cout << "輸入賭注方：(B / S)";
+        cin >> input;
+        if (input == 'S')
+            bidDirection = false;
 
-    playerList[0]->setBigOrSmall(bidDirection);
+        playerList[0]->setBigOrSmall(bidDirection);
 
-    playerList[0]->sortCard();
+        playerList[0]->sortCard();
+    }
 }
 
 void Game::printFinalResult()
@@ -1396,6 +1399,7 @@ void Game::endRound()
         for(int j = 0; j < cardInHand; j++){
             this->playerList[i]->cardArr.pop_back();
         }
+        this->playerList[i]->chipBiddenThisRound = 0;
     }
 }
 
