@@ -502,13 +502,13 @@ void Drunkard::sortCard()
     for(int i = 0; i < 10; i++){
         int idx1 = 2 * (rand() % 4);
         int idx2 = 2 * (rand() % 4);
-        swapCard(this->cardArr[idx1], cardArr[idx2]);
+        swapCard(newCardArr[idx1], newCardArr[idx2]);
     }
 
     for(int i = 1; i < cardInHand; i+=2){
-        if(this->cardArr[i]->getValue().compare("/") == 0){
-            if(this->cardArr[i + 1]->getValue().compare("0") == 0)
-                swapCard(this->cardArr[i - 1], this->cardArr[i + 1]);
+        if(newCardArr[i]->getValue().compare("/") == 0){
+            if(newCardArr[i + 1]->getValue().compare("0") == 0)
+                swapCard(newCardArr[i - 1], newCardArr[i + 1]);
         }
     }
     for (int i = 0; i < cardInHand; i++)
@@ -524,11 +524,7 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
         return 0;
     }
 
-    int bid = rand() % (limitChip - lst + 1) + lst;
-    // if (currChip < 7)
-    //     bid = 5;
-    // else
-    //     bid = 1;
+    int bid = rand() % ((limitChip - lst) / 2 + 1) + lst;
 
     this->chipBiddenThisRound += bid;
     return bid;
