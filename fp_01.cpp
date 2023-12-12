@@ -839,7 +839,10 @@ public:
     void gameStart();
     void calChips();
     void decisionInput();
+    void printFinalResult(const string& playerName);
 };
+
+const int totalPlayerNum = 4;
 
 Game::Game()
 {
@@ -1072,12 +1075,12 @@ void Game::gameStart()
 
 void Game::calChips()
 {
-    cout << "[name] 目前籌碼數量：";
+    cout << "[name] 目前籌碼數量：" << playerList[3]->totalChips;
     if(playerList[3]->totalChips == 0)
         cout << "您的籌碼數量歸零 GAME OVER....." << endl;
     else
     {
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < totalPlayerNum; i++)
         {
             playerList[i]->printName();
             cout << ":" << playerList[i]->totalChips;
@@ -1196,6 +1199,26 @@ void Game::decisionInput()
     cin.ignore(); // 忽略前一個輸入中的換行符號
     getline(cin, cardOrder);
     playerList[0]->sortCard(cardOrder);
+}
+
+void Game::printFinalResult(const string& playerName)
+{
+    //潛在問題：玩家名字和電腦角色名字相同
+    Character* winner = nullptr;
+    int winnerChips = 0;
+    for(int i = 0; i < totalPlayerNum; i++)
+    {
+        if(playerList[i]->totalChips > winnerChips)
+        {
+            winner = playerList[i];
+            winnerChips = playerList[i]->totalChips;
+            //尚未考慮同樣籌碼數要看顏色
+        }
+    }
+    if(winner->name == playerName)
+        cout << "恭喜你成為本次贏家" << endl;
+    else
+        cout << "你輸了..." << '\n' << "最終贏家為： " << winner->name << endl;
 }
 
 int main()
