@@ -130,6 +130,7 @@ protected:
     int chipBiddenThisRound;
     bool bigOrSmall;      // true for big, otherwise
     bool isFoldThisRound; // 棄牌 放棄本回合
+    bool isAlive; //籌碼為0，則踢出遊戲，isAlive = false
     string name;
 public:
     Character(const string &name); // constructor
@@ -157,6 +158,7 @@ Character::Character(const string &name)
     this->bigOrSmall = false;
     this->isFoldThisRound = false;
     this->cardArr.reserve(cardInHand);
+    this->isAlive = true;
 }
 
 Character::~Character()
@@ -880,6 +882,7 @@ private:
     int leastChips;
     int totalCardInGame;
     void _shuffle(int startIdx);
+    void _swapPlayer(int idx1, int idx2);
 public:
     Game();
     // ~Game()
@@ -902,6 +905,7 @@ public:
     void calChips();
     void decisionInput();
     void printFinalResult(const string& playerName);
+    void kickoutPlayer();
 };
 
 const int totalPlayerNum = 4;
@@ -962,6 +966,13 @@ void Game::_shuffle(int startIdx)
         this->cardList[idx1] = this->cardList[idx2];
         this->cardList[idx2] = temp;
     }
+}
+
+void Game::_swapPlayer(int idx1, int idx2)
+{
+    Character* tempPtr = this->playerList[idx1];
+    this->playerList[idx1] = this->playerList[idx2];
+    this->playerList[idx2] = tempPtr;
 }
 
 void Game::dealCard(int rnd)
@@ -1179,22 +1190,45 @@ void Game::gameStart(Player &pyptr)
 void Game::calChips()
 {
     cout << this->playerList[0]->name << "目前籌碼數量：" << playerList[0]->totalChips << endl;
-    if(playerList[0]->totalChips == 0)
-        cout << "您的籌碼數量歸零 GAME OVER....." << endl;
-    else
-    {
-        for(int i = 0; i < totalPlayerNum; i++)
+    if(playerList[0]->totalChips == 0){
+        for(int i = 1; i < totalPlayerNum; i++)
         {
+            cout << setw(10) << left;
             playerList[i]->printName();
+            cout << right;
             cout << ": " << playerList[i]->totalChips << endl;
         }
-        for(int i = 0; i < 4; i++)
+        for(int i = 0; i < this->playerList.size(); i++)
         {
             if(playerList[i]->totalChips <= 0)
             {
                 cout << "玩家";
+                cout << setw(10);
                 playerList[i]->printName();
                 cout << " 籌碼數量歸零，退出遊戲。" << endl;
+                this->playerList[i]->isAlive = false;
+            }
+        }
+        cout << "您的籌碼數量歸零 GAME OVER....." << endl;
+    }
+    else
+    {
+        for(int i = 0; i < this->playerList.size(); i++)
+        {
+            cout << setw(10) << left;
+            playerList[i]->printName();
+            cout << right;
+            cout << ": " << playerList[i]->totalChips << endl;
+        }
+        for(int i = 0; i < this->playerList.size(); i++)
+        {
+            if(playerList[i]->totalChips <= 0)
+            {
+                cout << "玩家";
+                cout << setw(10);
+                playerList[i]->printName();
+                cout << " 籌碼數量歸零，退出遊戲。" << endl;
+                this->playerList[i]->isAlive = false;
             }
         }
     }
@@ -1253,7 +1287,7 @@ void Game::printResult()
     if (bigWinner != nullptr)
     {
         cout << "賭大的贏家是： ";
-        bigWinner->printName();
+        cout << setw(10) << bigWinner->name;
         cout << " 數學式結果為：" << playerValue[bigWinneridx] << endl;
     }
     else
@@ -1263,8 +1297,8 @@ void Game::printResult()
 
     if (smallWinner != nullptr)
     {
-        cout << "賭小的贏家是 ";
-        smallWinner->printName();
+        cout << "賭小的贏家是： ";
+        cout << setw(10) << smallWinner->name;
         cout << " 數學式結果為：" << playerValue[smallWinneridx] << endl;
     }
     else
@@ -1273,12 +1307,14 @@ void Game::printResult()
     }
 
     // 輸出其餘玩家的名稱和數學式結果
-    cout << "其餘玩家：" << endl;
+    cout << "其餘玩家： " << endl;
     for (int i = 0; i < 4; i++)
     {
         if ((playerList[i] != bigWinner) and (playerList[i] != smallWinner))
         {
+            cout << setw(10) << left;
             playerList[i]->printName();
+            cout << right; 
             if (playerList[i]->bigOrSmall == true)
                 cout << " 賭大 ";
             else
@@ -1326,7 +1362,7 @@ void Game::printFinalResult(const string& playerName)
     Character* winner = nullptr;
     int winnerChips = 0;
     //int winner = 0;
-    for(int i = 0; i < totalPlayerNum; i++)
+    for(int i = 0; i < this->playerList.size(); i++)
     {
         if(playerList[i]->totalChips > winnerChips)
         {
@@ -1339,6 +1375,22 @@ void Game::printFinalResult(const string& playerName)
         cout << "恭喜你成為本次贏家" << endl;
     else
         cout << "你輸了..." << '\n' << "最終贏家為： " << winner->name << endl;
+}
+
+void Game::kickoutPlayer()
+{
+    int idx = 0;
+    while(idx < this->playerList.size()){
+        if(this->playerList[idx]->isAlive == false){
+            for(int j = idx; j < this->playerList.size() - 1; j++){
+                _swapPlayer(j, j + 1);
+            }
+            this->playerList.pop_back();
+        }
+        else{
+            idx++;
+        }
+    }
 }
 
 int main()
@@ -1371,8 +1423,9 @@ int main()
     G.decisionInput();
     G.printResult();
     G.calChips();
+    G.kickoutPlayer(); // 將籌碼歸零的玩家移除playerList
     G.printPlayerList();
 
-    G.printFinalResult("player1");
+    G.printFinalResult(playerName);
     return 0;
 }
