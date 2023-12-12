@@ -148,6 +148,8 @@ public:
     virtual void printWinner() = 0;
     virtual void throwCard(Card* c); //只能丟+ or -
     friend class Game;
+    NumberCard* getMaxCard();
+    NumberCard* getMinCard();
 };
 
 Character::Character(const string &name)
@@ -291,6 +293,43 @@ void Character::throwCard(Card* c)
     this->cardArr[0] = c;
 }
 
+NumberCard* Character::getMaxCard()
+{
+    NumberCard* maxNumberCard = nullptr;
+    for (Card* card : this->cardArr)
+    {
+        // 檢查是否為數字卡牌
+        NumberCard* numberCard = dynamic_cast<NumberCard*>(card);
+        if (numberCard)
+        {
+            // 如果找到更大的數字卡牌，更新 maxNumberCard
+            if (!maxNumberCard or (*numberCard > *maxNumberCard))
+            {
+                maxNumberCard = numberCard;
+            }
+        }
+    }
+    return maxNumberCard;
+}
+
+NumberCard* Character::getMinCard()
+{
+    NumberCard* minNumberCard = nullptr;
+    for (Card* card : this->cardArr)
+    {
+        // 檢查是否為數字卡牌
+        NumberCard* numberCard = dynamic_cast<NumberCard*>(card);
+        if (numberCard)
+        {
+            // 如果找到更小的數字卡牌，更新 minNumberCard
+            if (!minNumberCard or (*numberCard < *minNumberCard))
+            {
+                minNumberCard = numberCard;
+            }
+        }
+    }
+    return minNumberCard;
+}
 
 
 // 玩家
@@ -1265,6 +1304,15 @@ void Game::printResult()
                 bigWinner = playerList[i];
                 bigWinneridx = i;
             }
+            else if (difference == closestBigDifference)
+            {
+                // 在賭大的情況下，處理同分的情況
+                if (playerList[i]->getMaxCard() > bigWinner->getMaxCard())
+                {
+                    bigWinner = playerList[i];
+                    bigWinneridx = i;
+                }
+            }
         }
         else
         {
@@ -1274,6 +1322,15 @@ void Game::printResult()
                 closestSmallDifference = difference;
                 smallWinner = playerList[i];
                 smallWinneridx = i;
+            }
+            else if (difference == closestSmallDifference)
+            {
+                // 在賭小的情況下，處理同分的情況
+                if (playerList[i]->getMinCard() < smallWinner->getMinCard())
+                {
+                    smallWinner = playerList[i];
+                    smallWinneridx = i;
+                }
             }
         }
     }
