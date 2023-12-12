@@ -157,15 +157,11 @@ Character::Character(const string &name)
     this->chipBiddenThisRound = 0;
     this->bigOrSmall = false;
     this->isFoldThisRound = false;
-    this->cardArr.reserve(cardInHand);
     this->isAlive = true;
 }
 
 Character::~Character()
-{
-    for (int i = 0; i < cardInHand; i++)
-        delete this->cardArr[i];
-}
+{}
 
 void Character::addCard(Card *c)
 {
@@ -519,7 +515,7 @@ void Drunkard::sortCard()
 int Drunkard::biddingChips(const int currChip, const int limitChip)
 {
     int lst = currChip - this->chipBiddenThisRound;
-    if (currChip == this->chipBiddenThisRound)
+    if (currChip == this->chipBiddenThisRound || lst <= 0)
     {
         return 0;
     }
@@ -908,6 +904,7 @@ public:
     void decisionInput();
     void printFinalResult();
     void kickoutPlayer();
+    void endRound();
 };
 
 const int totalPlayerNum = 4;
@@ -960,10 +957,10 @@ void Game::initCardList()
 
 void Game::_shuffle(int startIdx)
 {
-    const int shuffleTime = 2 * totalCardInGame;
+    const int shuffleTime = 2 * this->cardList.size();
     for(int i = 0; i < shuffleTime; i++){
-        int idx1 = rand() % (totalCardInGame - startIdx) + startIdx;
-        int idx2 = rand() % (totalCardInGame - startIdx) + startIdx;
+        int idx1 = rand() % (this->cardList.size() - startIdx) + startIdx;
+        int idx2 = rand() % (this->cardList.size() - startIdx) + startIdx;
         Card* temp = this->cardList[idx1];
         this->cardList[idx1] = this->cardList[idx2];
         this->cardList[idx2] = temp;
@@ -1050,6 +1047,7 @@ void Game::dealCard(int rnd)
                 cardListIdx++;
             };
         }
+        cardListIdx = 0;
     }
 }
 
@@ -1392,6 +1390,15 @@ void Game::kickoutPlayer()
     }
 }
 
+void Game::endRound()
+{
+    for(int i = 0; i < this->playerList.size(); i++){
+        for(int j = 0; j < cardInHand; j++){
+            this->playerList[i]->cardArr.pop_back();
+        }
+    }
+}
+
 int main()
 {
     srand(time(nullptr));
@@ -1405,25 +1412,26 @@ int main()
     Game G;
     G.gameStart(py);
 
-    G.printPlayerList();
-
-    G.initCardList();
-    G.dealCard(0);
-    G.biddingPerRound(0);
-    G.dealCard(1);
-    cout << "bid 1---------------------------" << endl;
-    G.biddingPerRound(1);
-    G.dealCard(2);
-    cout << "bid 2---------------------------" << endl;
-    G.biddingPerRound(2);
-    G.printPlayersCard();
-    G.enemySort();
-    //G.printPlayersCard();
-    G.decisionInput();
-    G.printResult();
-    G.calChips();
-    G.kickoutPlayer(); // 將籌碼歸零的玩家移除playerList
-    G.printPlayerList();
+    for(int i = 0; i < 3; i++){
+        G.printPlayerList();
+        G.initCardList();
+        G.dealCard(0);
+        G.biddingPerRound(0);
+        G.dealCard(1);
+        cout << "bid 1---------------------------" << endl;
+        G.biddingPerRound(1);
+        G.dealCard(2);
+        cout << "bid 2---------------------------" << endl;
+        G.biddingPerRound(2);
+        G.printPlayersCard();
+        G.enemySort();
+        G.decisionInput();
+        G.printResult();;
+        G.calChips();;
+        G.kickoutPlayer(); // 將籌碼歸零的玩家移除playerList;
+        G.printPlayerList();;
+        G.endRound();
+    }
 
     G.printFinalResult();
     return 0;
