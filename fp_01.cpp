@@ -524,7 +524,7 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
         return 0;
     }
 
-    int bid = rand() % ((limitChip - lst) / 2 + 1) + lst;
+    int bid = rand() % (limitChip - lst + 1) + lst;
 
     this->chipBiddenThisRound += bid;
     return bid;
