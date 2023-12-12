@@ -141,7 +141,9 @@ public:
     void printAllCard();
     void printPublicCard();
     virtual void sortCard(){};
+    virtual void sortCard(string order) {}; // Implement?
     virtual int biddingChips(const int currChip, const int limitChip) = 0; // 前一人下注的籌碼
+    virtual void setBigOrSmall(bool isBig) {this->bigOrSmall = isBig;};
     void printName();
     friend class Game;
 };
@@ -373,7 +375,7 @@ private:
     bool _findNextIdx(bool isSymbol, int &idx);
 public:
     Drunkard() : Character("Drunkard"){};
-    ~Drunkard(){};
+    ~Drunkard() {};
     void sortCard();
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼
 };
