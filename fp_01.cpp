@@ -539,7 +539,7 @@ void Drunkard::sortCard()
         int idx2 = 2 * (rand() % 4);
         swapCard(newCardArr[idx1], newCardArr[idx2]);
     }
-    
+
    for(int i = 0; i < cardInHand; i+=2){
         if(newCardArr[i]->getValue().compare("/") == 0){
             if(newCardArr[i + 1]->getValue().compare("0") == 0)
@@ -550,7 +550,6 @@ void Drunkard::sortCard()
         this->cardArr[i] = newCardArr[i];
 }
 
-// int Drunkard::biddingChips(const int currChip, const int limitChip)
 int Drunkard::biddingChips(const int currChip, const int limitChip)
 {
     int lst = currChip - this->chipBiddenThisRound;
@@ -736,7 +735,6 @@ public:
     Math(const std::string& n) : Character(n) {};
     ~Math() {};
     void sortCard();
-    //bool _findNextIdx(bool isSymbol, int& idx);
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼(要先呼叫過sortCard才能呼叫biddingChips)
     void printWinner();
 };
