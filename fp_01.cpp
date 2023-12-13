@@ -406,7 +406,7 @@ void Player::sortCard()
 
 void Player::printHandCard()
 {
-    cout << "-------------" << setw(10) << this->name << setw(10) << setiosflags(ios::left) << "'s hand" << resetiosflags(ios::left) << "-------------" << endl;
+    cout << "-------------" << setw(10) << right << this->name << setw(10) << left << "'s hand" << "-------------" << endl;
     cout << setw(13) << "Hand : ";
     for (int i = 0; i < this->cardArr.size(); i++)
     {
@@ -728,6 +728,8 @@ void Rich::printWinner()
     cout << "你輸了..." << '\n' << "最終贏家為： " << this->name<< endl;
 }
 
+
+
 class Math : public Character
 {
 private:
@@ -742,6 +744,17 @@ public:
 int Math::biddingChips(const int currChip, const int limitChip)
 {
     int bid = 0;
+    // Modify by 蔡宗耘
+    // 先複製this->cardArr到tempArr
+    // 然後sort this->cardArr
+    // 計算結果下注
+    // 下注後將tempArr複製回this->cardArr，讓cardArr回復原來的順序
+    vector<Card*> tempArr;
+
+    for(int i = 0; i < 7; i++){
+        tempArr.push_back(cardArr[i]);
+    }
+    // modify end
     if (this->totalChips > 0)//還有chips
     {
         if (this->cardArr.size() < 7)
@@ -751,6 +764,9 @@ int Math::biddingChips(const int currChip, const int limitChip)
         }
         else
         {
+            // modify by 蔡宗耘
+            this->sortCard();
+            // modify end
             double result = this->calCard(); // 先取optimal solution(要先呼叫過sortCard才能呼叫biddingChips)
 
             bid = 0;
@@ -780,6 +796,11 @@ int Math::biddingChips(const int currChip, const int limitChip)
     }
     else
         this->isFoldThisRound = true;
+    // modify by 蔡宗耘
+    for(int i = 0; i < 7; i++){
+        this->cardArr[i] = tempArr[i];
+    }
+    // modify end
     return bid;
 }
 
@@ -1384,7 +1405,7 @@ void Game::printResult()
 
     // 輸出其餘玩家的名稱和數學式結果
     cout << "其餘玩家： " << endl;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < this->playerList.size(); i++)
     {
         if ((playerList[i] != bigWinner) and (playerList[i] != smallWinner))
         {
