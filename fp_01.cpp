@@ -539,8 +539,8 @@ void Drunkard::sortCard()
         int idx2 = 2 * (rand() % 4);
         swapCard(newCardArr[idx1], newCardArr[idx2]);
     }
-
-    for(int i = 1; i < cardInHand; i+=2){
+    
+   for(int i = 0; i < cardInHand; i+=2){
         if(newCardArr[i]->getValue().compare("/") == 0){
             if(newCardArr[i + 1]->getValue().compare("0") == 0)
                 swapCard(newCardArr[i - 1], newCardArr[i + 1]);
