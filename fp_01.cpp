@@ -554,12 +554,11 @@ void Drunkard::sortCard()
 int Drunkard::biddingChips(const int currChip, const int limitChip)
 {
     int lst = currChip - this->chipBiddenThisRound;
-    if (currChip == this->chipBiddenThisRound || lst <= 0)
-    {
+    if (currChip == this->chipBiddenThisRound || lst <= 0){
         return 0;
     }
 
-    int bid = rand() % (limitChip - lst + 1) + lst;
+    int bid = (rand() % (limitChip - lst + 1)) / 2 + lst;
 
     this->chipBiddenThisRound += bid;
     return bid;
