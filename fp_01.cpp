@@ -565,7 +565,12 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
 
 void Drunkard::throwCard(Card* c)
 {
-    this->cardArr[rand() % 2] = c;
+    int rand1 = rand() % 2;
+    int rand2 = rand() % 2;
+    if(rand1)
+        return;
+    else
+        this->cardArr[rand2] = c;
 }
 
 void Drunkard::printWinner()
@@ -1530,8 +1535,9 @@ int main()
         G.printPlayersCard();
         G.enemySort();
         G.decisionInput();
-        G.printResult();;
-        G.calChips();;
+        //bug found
+        G.printResult();
+        G.calChips();
         G.kickoutPlayer(playerName); // 將籌碼歸零的玩家移除playerList;
         G.printPlayerList();;
         G.endRound();
