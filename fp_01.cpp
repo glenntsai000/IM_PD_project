@@ -373,7 +373,7 @@ int Player::biddingChips(const int currChip, const int limitChip)
 void Player::sortCard()
 {
     
-    cout << "請輸入最終數學式: \n";
+    cout << "請輸入最終數學式: ";
     string cardOrder;
     cin >> cardOrder;
 
@@ -986,7 +986,7 @@ public:
     void calChips();
     void decisionInput();
     void printFinalResult();
-    void kickoutPlayer(string playerName);
+    void kickoutPlayer();
     void endRound();
 };
 
@@ -1478,7 +1478,7 @@ void Game::printFinalResult()
     winner->printWinner();
 }
 
-void Game::kickoutPlayer(string playerName)
+void Game::kickoutPlayer()
 {
     int idx = 0;
     while(idx < this->playerList.size()){
@@ -1487,7 +1487,7 @@ void Game::kickoutPlayer(string playerName)
                 _swapPlayer(j, j + 1);
             }
 
-            if(this->playerList.back()->name.compare(playerName) == 0)
+            if(this->playerList.back()->isPlayer == true)
                 playerAlive = false;
             
             this->playerList.pop_back();
@@ -1513,8 +1513,8 @@ int main()
     srand(time(nullptr));
     // main for test
     cout << "請輸入玩家名稱: ";
-    string playerName = "player1";
-    // cin >> playerName;
+    string playerName;
+    cin >> playerName;
     Player py(playerName);
     py.printName();
     cout << endl;
@@ -1535,12 +1535,12 @@ int main()
         G.biddingPerRound(2);
         G.printPlayersCard();
         G.enemySort();
-        G.printPlayersCard();
+        //G.printPlayersCard();
         G.decisionInput();
         //bug found
         G.printResult();
         G.calChips();
-        G.kickoutPlayer(playerName); // 將籌碼歸零的玩家移除playerList;
+        G.kickoutPlayer(); // 將籌碼歸零的玩家移除playerList;
         G.printPlayerList();;
         G.endRound();
     }
