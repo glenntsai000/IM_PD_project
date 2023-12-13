@@ -744,7 +744,14 @@ public:
     void sortCard();
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼(要先呼叫過sortCard才能呼叫biddingChips)
     void printWinner();
+    void throwCard(Card* c);
 };
+
+void Math::throwCard(Card* c)
+{
+    this->cardArr[0] = c;//把加號丟掉
+}
+
 
 int Math::biddingChips(const int currChip, const int limitChip)
 {
