@@ -696,13 +696,33 @@ void Rich::sortCard()
                 swapPtr(this->cardArr[2 * j], this->cardArr[2 * j + 2]);
         }
     }
+    //swithch symbol card: * or / put in middle
+    if(this->cardArr[1]->getValue() == "*" || this->cardArr[1]->getValue() == "/")
+        swapPtr(this->cardArr[1], this->cardArr[3]);
+    else if(this->cardArr[1]->getValue() == "*" || this->cardArr[1]->getValue() == "/")
+        swapPtr(this->cardArr[5], this->cardArr[3]);
 }
 
 int Rich::biddingChips(const int currChip, const int limitChip)
 {
     // all in
-    this->chipBiddenThisRound += limitChip;
-    return limitChip; // 要怎麼知道現在最少的籌碼有幾個
+    if(currChip == this->chipBiddenThisRound)
+        return 0;
+    if(limitChip * 0.5 >= currChip)
+    {
+        this->chipBiddenThisRound += 0.5 * limitChip;
+        return 0.5 * limitChip;
+    }
+    else if(limitChip * 0.75 >= currChip)
+    {
+        this->chipBiddenThisRound += 0.75 * limitChip;
+        return 0.75 * limitChip;
+    }
+    else
+    {
+        this->chipBiddenThisRound += limitChip;
+        return limitChip; // 要怎麼知道現在最少的籌碼有幾個 
+    }
 }
 
 void Rich::printWinner()
@@ -947,7 +967,6 @@ public:
     void endRound();
 };
 
-const int totalPlayerNum = 4;
 
 Game::Game()
 {
@@ -1141,7 +1160,7 @@ void Game::biddingPerRound(int rnd)
                 cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl;
 
                 int pyBidNum = this->playerList[i]->biddingChips(currChip, (leastChips - this->playerList[i]->chipBiddenThisRound));
-                //如果電腦沒籌碼可以下注了怎辦
+                
                 if (pyBidNum == -1)
                 {
                     cout << this->playerList[i]->name << "放棄這回合" << endl;
@@ -1203,8 +1222,8 @@ void Game::gameStart(Player &pyptr)
     Math* m = new Math("Math"); //沒有複寫biddingChips函數
     //隨機分配三個角色的順序，最後再加上player
     this->addPlayer(pyptr);
-    //int ran = rand()%3;
-    int ran = 0;
+    int ran = rand()%3;
+    //int ran = 0;
     if(ran == 0)
     {
         this->playerList.push_back(d);
@@ -1233,7 +1252,7 @@ void Game::calChips()
 {
     cout << this->playerList[0]->name << "目前籌碼數量：" << playerList[0]->totalChips << endl;
     if(playerList[0]->totalChips == 0){
-        for(int i = 1; i < totalPlayerNum; i++)
+        for(int i = 1; i < this->playerList.size(); i++)
         {
             cout << setw(10) << left;
             playerList[i]->printName();
@@ -1279,8 +1298,8 @@ void Game::calChips()
 void Game::printResult()
 {
     //計算大家的結果，找出贏的人
-    double playerValue[totalPlayerNum];
-    for (int i = 0; i < totalPlayerNum; i++)
+    double playerValue[this->playerList.size()];
+    for (int i = 0; i < this->playerList.size(); i++)
         playerValue[i] = playerList[i]->calCard();
 
 
@@ -1292,7 +1311,7 @@ void Game::printResult()
     double closestBigDifference = numeric_limits<double>::infinity();
     double closestSmallDifference = numeric_limits<double>::infinity();
 
-    for (int i = 0; i < totalPlayerNum; i++)
+    for (int i = 0; i < this->playerList.size(); i++)
     {
         double targetValue = (playerList[i]->bigOrSmall) ? 20.0 : 1.0;
         double difference = abs(playerValue[i] - targetValue);
