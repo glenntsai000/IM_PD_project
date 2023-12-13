@@ -1515,16 +1515,17 @@ int main()
     Game G;
     G.gameStart(py);
 
-    for(int i = 0; i < 3; i++){
+    for(int i = 1; i <= 3; i++){
+        cout << setw(20) << setfill('-') << "" << "ROUND" << i << setw(20) << "" << setfill(' ') << endl;
         G.printPlayerList();
         G.initCardList();
         G.dealCard(0);
         G.biddingPerRound(0);
         G.dealCard(1);
-        cout << "bid 1---------------------------" << endl;
+        cout << setw(20) << setfill('-') << "" << "BID  1"  << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(1);
         G.dealCard(2);
-        cout << "bid 2---------------------------" << endl;
+        cout << setw(20) << setfill('-') << "" << "BID  2"  << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(2);
         G.printPlayersCard();
         G.enemySort();
