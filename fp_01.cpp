@@ -131,10 +131,11 @@ protected:
     bool bigOrSmall;      // true for big, otherwise
     bool isFoldThisRound; // 棄牌 放棄本回合
     bool isAlive; //籌碼為0，則踢出遊戲，isAlive = false
+    bool isPlayer; //區分是否為玩家
     string name;
 public:
     Character(const string &name); // constructor
-    virtual ~Character();          // destructor
+    virtual ~Character() {};          // destructor
     void addCard(Card *c);
     void swapCard(Card *c1, Card *c2);
     void printName();
@@ -160,10 +161,8 @@ Character::Character(const string &name)
     this->bigOrSmall = false;
     this->isFoldThisRound = false;
     this->isAlive = true;
+    this->isPlayer = false;
 }
-
-Character::~Character()
-{}
 
 void Character::addCard(Card *c)
 {
@@ -338,7 +337,7 @@ class Player : public Character
 private:
 public:
     // Player(const string& playername) : Character("playername") {};
-    Player(const string &playername) : Character(playername){};
+    Player(const string &playername) : Character(playername) {this->isPlayer = true;};
     ~Player(){};
     void sortCard();
     int biddingChips(const int currChip, const int limitChip);
@@ -1009,8 +1008,7 @@ void Game::addPlayer(Player &pyptr)
 void Game::initCardList()
 {
     //清空卡池
-    for(int i = 0; i < this->cardList.size(); i++)
-        this->cardList.pop_back();
+    this->cardList.clear();
     //重新加入數字牌
     for(int i = 0; i < 10; i++){
         NumberCard* _nc = new NumberCard(i, "R");
@@ -1232,8 +1230,10 @@ void Game::printPlayerList()
 
 void Game::enemySort()
 {
-    for(int i = 1; i < this->playerList.size(); i++){
-        this->playerList[i]->sortCard();
+    //bug here
+    for(int i = 0; i < this->playerList.size(); i++){
+        if(this->playerList[i]->isPlayer == false)
+            this->playerList[i]->sortCard();
     }
 }
 
@@ -1321,9 +1321,9 @@ void Game::calChips()
 void Game::printResult()
 {
     //計算大家的結果，找出贏的人
-    double playerValue[this->playerList.size()];
+    vector<double> playerValue;
     for (int i = 0; i < this->playerList.size(); i++)
-        playerValue[i] = playerList[i]->calCard();
+        playerValue.push_back(playerList[i]->calCard());
 
 
     //回合結果公布：
@@ -1534,6 +1534,7 @@ int main()
         G.biddingPerRound(2);
         G.printPlayersCard();
         G.enemySort();
+        G.printPlayersCard();
         G.decisionInput();
         //bug found
         G.printResult();
