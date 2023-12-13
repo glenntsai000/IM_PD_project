@@ -918,6 +918,7 @@ private:
     int currChip;
     int leastChips;
     int totalCardInGame;
+    bool playerAlive;
     void _shuffle(int startIdx);
     void _swapPlayer(int idx1, int idx2);
 public:
@@ -942,7 +943,7 @@ public:
     void calChips();
     void decisionInput();
     void printFinalResult();
-    void kickoutPlayer();
+    void kickoutPlayer(string playerName);
     void endRound();
 };
 
@@ -955,6 +956,7 @@ Game::Game()
     this->currChip = 0;
     this->totalCardInGame = 0;
     this->leastChips = 1000; // 下注最高限制
+    this->playerAlive = true;
 }
 
 void Game::addPlayer(Player &pyptr)
@@ -1400,7 +1402,7 @@ void Game::printResult()
 
 void Game::decisionInput()
 {
-    if(this->playerList[0]->isAlive == true){
+    if(this->playerAlive == true){
         //第二輪下注結束
         bool bidDirection = true;
         char input;
@@ -1411,7 +1413,6 @@ void Game::decisionInput()
             bidDirection = false;
 
         playerList[0]->setBigOrSmall(bidDirection);
-
         playerList[0]->sortCard();
     }
 }
@@ -1434,7 +1435,7 @@ void Game::printFinalResult()
     winner->printWinner();
 }
 
-void Game::kickoutPlayer()
+void Game::kickoutPlayer(string playerName)
 {
     int idx = 0;
     while(idx < this->playerList.size()){
@@ -1442,6 +1443,10 @@ void Game::kickoutPlayer()
             for(int j = idx; j < this->playerList.size() - 1; j++){
                 _swapPlayer(j, j + 1);
             }
+
+            if(this->playerList.back()->name.compare(playerName) == 0)
+                playerAlive = false;
+            
             this->playerList.pop_back();
         }
         else{
@@ -1489,7 +1494,7 @@ int main()
         G.decisionInput();
         G.printResult();;
         G.calChips();;
-        G.kickoutPlayer(); // 將籌碼歸零的玩家移除playerList;
+        G.kickoutPlayer(playerName); // 將籌碼歸零的玩家移除playerList;
         G.printPlayerList();;
         G.endRound();
     }
