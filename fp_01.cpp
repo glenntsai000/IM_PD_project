@@ -6,6 +6,7 @@
 #include<iomanip>
 #include<algorithm>
 #include<limits>
+#include<stdexcept>
 
 using namespace std;
 
@@ -372,12 +373,59 @@ int Player::biddingChips(const int currChip, const int limitChip)
 
 void Player::sortCard()
 {
+    int cnt = 0;
+    bool isFound = false;
+    string cardOrder;
+    vector<Card*> tempArr;
+
+    for(int i = 0; i < this->cardArr.size(); i++)
+        tempArr.push_back(this->cardArr[i]);
     
     cout << "請輸入最終數學式: ";
-    string cardOrder;
-    cin >> cardOrder;
+    while(isFound == false){
+        try{
+            cin >> cardOrder;
+            if(cardOrder.length() != 7)
+                throw range_error("wrong length");
+            for(int i = 1; i < cardOrder.length(); i+=2){
+                if(cardOrder[i] != '+' && cardOrder[i] != '-' && cardOrder[i] != '*' && cardOrder[i] != '/')
+                    throw logic_error("wrong symbol");
+                else{
+                    if(cardOrder[i - 1] == '+' && cardOrder[i - 1] == '-' && cardOrder[i - 1] == '*' && cardOrder[i - 1] == '/'
+                    && cardOrder[i + 1] == '+' && cardOrder[i + 1] == '-' && cardOrder[i + 1] == '*' && cardOrder[i + 1] == '/')
+                        throw logic_error("consecutive symbol");
+                }
+            }
+        }
+        catch(range_error err){
+            cout << "輸入的數學式未包含所有手牌，請重新輸入：";
+            continue;
+        }
+        catch(logic_error err){
+            cout << "輸入的數學式邏輯有誤，請重新輸入：";
+            continue;
+        }
+        cnt = cardOrder.length();
+        
+        for(int i = 0; i < cnt; i++){
+            isFound = false;
+            string str(1, cardOrder[i]);
+            for(int j = 0; j < tempArr.size(); j++){
+                if(tempArr[j]->getValue().compare(str) == 0){
+                    isFound = true;
+                    tempArr.erase(tempArr.begin() + j);
+                    break;
+                }
+            }
+        }
 
-    int cnt = cardOrder.length();
+        if(isFound == true)
+            break;
+        
+        cout << "輸入的數學式包含非手牌的卡，請重新輸入：";
+    }
+    tempArr.clear();
+
     Card *newCardArr[7];
     // cout << order<<endl;
     for (int i = 0; i < cnt; i++)
@@ -1457,8 +1505,18 @@ void Game::decisionInput()
         bool bidDirection = true;
         char input;
         cout << "請決定賭大 / 小，並輸入您的最終數學式" << endl;
-        cout << "輸入賭注方：(B / S)";
-        cin >> input;
+        cout << "輸入賭注方(B / S) : ";
+        try{
+            cin >> input;
+            if(input != 'S' && input != 'B')
+                throw invalid_argument("invalid input");
+        }
+        catch(invalid_argument err){
+            while(input != 'S' && input != 'B'){
+                cout << "必須輸入B或S，重新輸入賭注方(B / S) : ";
+                cin >> input;
+            }
+        }
         if (input == 'S')
             bidDirection = false;
 
