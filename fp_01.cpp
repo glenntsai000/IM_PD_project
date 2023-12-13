@@ -345,6 +345,7 @@ public:
     int biddingChips(const int currChip, const int limitChip);
     void printHandCard(); // 使玩家可以印出隱藏牌
     void printWinner();
+    void throwCard(Card* c);
     friend class Game;
 };
 
@@ -396,36 +397,39 @@ void Player::sortCard()
                         throw logic_error("consecutive symbol");
                 }
             }
+
+            cnt = cardOrder.length();
+        
+            for(int i = 0; i < cnt; i++){
+                isFound = false;
+                string str(1, cardOrder[i]);
+                for(int j = 0; j < tempArr.size(); j++){
+                    if(tempArr[j]->getValue().compare(str) == 0){
+                        isFound = true;
+                        tempArr.erase(tempArr.begin() + j);
+                        break;
+                    }
+                }
+            }
+
+            if(isFound == true)
+                break;
+            else{
+                throw exception();
+            }
         }
         catch(range_error err){
             cout << "輸入的數學式未包含所有手牌，請重新輸入：";
-            continue;
         }
         catch(logic_error err){
             cout << "輸入的數學式邏輯有誤，請重新輸入：";
-            continue;
         }
-        cnt = cardOrder.length();
-        
-        for(int i = 0; i < cnt; i++){
-            isFound = false;
-            string str(1, cardOrder[i]);
-            for(int j = 0; j < tempArr.size(); j++){
-                if(tempArr[j]->getValue().compare(str) == 0){
-                    isFound = true;
-                    tempArr.erase(tempArr.begin() + j);
-                    break;
-                }
-            }
+        catch(exception err){
+            cout << "輸入的數學式包含非手牌的卡，請重新輸入："; 
         }
-
-        if(isFound == true)
-            break;
-        
-        cout << "輸入的數學式包含非手牌的卡，請重新輸入：";
     }
     tempArr.clear();
-
+    cout << "pass" <<endl;
     Card *newCardArr[7];
     // cout << order<<endl;
     for (int i = 0; i < cnt; i++)
@@ -486,6 +490,59 @@ void Player::printHandCard()
 void Player::printWinner()
 {
     cout << "恭喜你成為本次遊戲的贏家！" << endl;
+}
+
+void Player::throwCard(Card* c)
+{
+    if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0)
+        cout << "抽到＊需要丟掉一張＋或—，請選擇(輸入q丟棄＊）：";
+    else if(this->cardArr[0]->getValue().compare("*") == 0 && this->cardArr[0]->getValue().compare("*") != 0)
+        cout << "抽到＊需要丟掉一張—，請選擇是否丟棄—(Y/N）：";
+    else if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[0]->getValue().compare("*") == 0)
+        cout << "抽到＊需要丟掉一張＋，請選擇是否丟棄＋(Y/N）：";
+    else
+        return;
+    
+    string symbol;
+    if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0){
+        do{
+            try{
+                cin >> symbol;
+                if(symbol != "+" && symbol != "-" && symbol != "*")
+                    throw invalid_argument("wrong input");
+            }
+            catch(invalid_argument err){
+                cout << "輸入＋或—以外的符號，請重新輸入：";
+            }
+        }while (symbol != "+" && symbol != "-" && symbol != "*");
+        if(symbol == "+")
+            this->cardArr[0] = c;
+        else if(symbol == "-")
+            this->cardArr[1] = c;
+        else
+            return;
+    }
+    else{
+        do{
+            try{
+                cin >> symbol;
+                if(symbol != "Y" && symbol !="N"){
+                    throw invalid_argument("Neither Y nor N");
+                }
+            }
+            catch(invalid_argument e){
+                cout << "輸入不是Y或N，請重新輸入(Y/N)：";
+            }
+        }while(symbol != "Y" && symbol != "N");
+        if(symbol == "Y"){
+            if(this->cardArr[0]->getValue() == "*")
+                this->cardArr[1] = c;
+            else
+                this->cardArr[0] = c;
+        }
+        else
+            return;
+    }
 }
 
 class Drunkard : public Character
