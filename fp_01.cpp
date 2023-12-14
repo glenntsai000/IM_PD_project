@@ -410,6 +410,8 @@ void Player::sortCard()
                         break;
                     }
                 }
+                if(isFound == false)
+                    break;
             }
 
             if(isFound == true)
@@ -426,10 +428,14 @@ void Player::sortCard()
         }
         catch(exception err){
             cout << "輸入的數學式包含非手牌的卡，請重新輸入："; 
+            tempArr.clear();
+            for(int i = 0; i < this->cardArr.size(); i++)
+                tempArr.push_back(this->cardArr[i]);
         }
     }
     tempArr.clear();
-    cout << "pass" <<endl;
+
+
     Card *newCardArr[7];
     // cout << order<<endl;
     for (int i = 0; i < cnt; i++)
@@ -508,13 +514,13 @@ void Player::throwCard(Card* c)
         do{
             try{
                 cin >> symbol;
-                if(symbol != "+" && symbol != "-" && symbol != "*")
+                if(symbol != "+" && symbol != "-" && symbol != "q")
                     throw invalid_argument("wrong input");
             }
             catch(invalid_argument err){
                 cout << "輸入＋或—以外的符號，請重新輸入：";
             }
-        }while (symbol != "+" && symbol != "-" && symbol != "*");
+        }while (symbol != "+" && symbol != "-" && symbol != "q");
         if(symbol == "+")
             this->cardArr[0] = c;
         else if(symbol == "-")
