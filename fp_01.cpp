@@ -269,7 +269,7 @@ double Character::calCard()
 
 void Character::printHandCard()
 {
-    cout << setw(10) << this->name << " : ";
+    cout << setw(10) << right << this->name << " : " << left;
     for (int i = 0; i < this->cardArr.size(); i++)
     {
         if(this->cardArr[i]->getVisibility() == true){
@@ -1349,17 +1349,17 @@ void Game::biddingPerRound(int rnd)
 
 void Game::printPlayerList()
 {
-    cout << "========Player List========" << endl;
-    cout << "   NAME   " << "CHARACTER" << "  CHIPS " << endl;
+    cout << "==========Player List==========" << endl;
+    cout << "      NAME    " << "CHARACTER" << "   CHIPS" << endl;
     for (int i = 0; i < playerList.size(); i++)
     {
         cout << setw(10);
         this->playerList[i]->printName();
-        cout << setw(9) << this->playerList[i]->type;
-        cout << " : " << setw(8) << this->playerList[i]->getTotalChips();
+        cout << setw(13) << this->playerList[i]->type;
+        cout << setw(8) << this->playerList[i]->getTotalChips();
         cout << endl;
     }
-    cout << "===========================" << endl;
+    cout << "===============================" << endl;
 }
 
 void Game::enemySort()
