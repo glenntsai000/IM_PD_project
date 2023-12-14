@@ -259,6 +259,33 @@ double Character::calCard()
                 value /= stod(this->cardArr[6]->getValue());
             }
         }
+        else if((this->cardArr[1]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("/") != 0) 
+        && (this->cardArr[5]->getValue().compare("*") != 0 && this->cardArr[5]->getValue().compare("/") != 0)){
+            //  a+b*c+d
+            value += stod(this->cardArr[0]->getValue());
+            double value2 = stod(this->cardArr[2]->getValue());
+
+            if(this->cardArr[3]->getValue().compare("*") == 0){
+                value2 *= stod(this->cardArr[4]->getValue());
+            }
+            else if(this->cardArr[3]->getValue().compare("/") == 0){
+                value2 /= stod(this->cardArr[4]->getValue());
+            }
+
+            if(this->cardArr[1]->getValue().compare("+") == 0){
+                value += value2;
+            }
+            else if(this->cardArr[1]->getValue().compare("-") == 0){
+                value -= value2;
+            }
+
+            if(this->cardArr[5]->getValue().compare("+") == 0){
+                value += stod(this->cardArr[6]->getValue());
+            }
+            else if(this->cardArr[5]->getValue().compare("-") == 0){
+                value -= stod(this->cardArr[6]->getValue());
+            }
+        }
     }
     else{
         // 若中間的符號不是＊／，不能出現乘除連號
