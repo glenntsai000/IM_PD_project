@@ -664,12 +664,12 @@ void Drunkard::sortCard()
 
 int Drunkard::biddingChips(const int currChip, const int limitChip)
 {
-    int lst = currChip - this->chipBiddenThisRound;
-    if (currChip == this->chipBiddenThisRound || lst <= 0){
+    int diff = currChip - this->chipBiddenThisRound;
+    if (this->totalChips == 0){
         return 0;
     }
 
-    int bid = (rand() % (limitChip - lst + 1)) / 2 + lst;
+    int bid = (rand() % (limitChip - diff + 1)) / 2 + diff;
 
     this->chipBiddenThisRound += bid;
     return bid;
@@ -1339,16 +1339,17 @@ void Game::biddingPerRound(int rnd)
 
 void Game::printPlayerList()
 {
-    cout << "===Player List===" << endl;
+    cout << "========Player List========" << endl;
+    cout << "   NAME   " << "CHARACTER" << "  CHIPS " << endl;
     for (int i = 0; i < playerList.size(); i++)
     {
         cout << setw(10);
         this->playerList[i]->printName();
-        cout << setw(10) << this->playerList[i]->type;
-        cout << " : " << setw(4) << this->playerList[i]->getTotalChips();
+        cout << setw(9) << this->playerList[i]->type;
+        cout << " : " << setw(8) << this->playerList[i]->getTotalChips();
         cout << endl;
     }
-    cout << "=================" << endl;
+    cout << "===========================" << endl;
 }
 
 void Game::enemySort()
