@@ -669,8 +669,18 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
         return 0;
     }
 
-    int bid = (rand() % (limitChip - diff + 1)) / 2 + diff;
-
+    int bid = 0;
+    if(diff >= 0){
+        int delta = min(limitChip, this->totalChips) - currChip + 1;
+        if(delta > 0)
+            bid = rand() % delta + diff;
+        else{
+            if(rand() % 2 == 0)
+                bid = diff;
+            else
+                bid = 0;
+        }
+    }
     this->chipBiddenThisRound += bid;
     return bid;
 }
@@ -1315,7 +1325,7 @@ void Game::biddingPerRound(int rnd)
                 cout << this->playerList[i]->name << " 本回合已下注數量: " << this->playerList[i]->chipBiddenThisRound << endl
                      << endl;
 
-                currChip = this->playerList[i]->chipBiddenThisRound;
+                currChip = max(this->playerList[i]->chipBiddenThisRound, currChip);
                 chipsInRound += pyBidNum;
                 this->playerList[i]->totalChips -= pyBidNum;
                 plus = pyBidNum;
