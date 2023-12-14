@@ -829,6 +829,10 @@ void Rich::sortCard()
         swapPtr(this->cardArr[1], this->cardArr[3]);
     else if(this->cardArr[1]->getValue() == "*" || this->cardArr[1]->getValue() == "/")
         swapPtr(this->cardArr[5], this->cardArr[3]);
+    
+    int calRe = this->calCard();
+    if(abs(calRe - 20) >= 10)
+        swapPtr(this->cardArr[0], this->cardArr[4]);
 }
 
 int Rich::biddingChips(const int currChip, const int limitChip)
@@ -1116,7 +1120,7 @@ public:
     void printResult();
     void printPlayerList();
     void enemySort();
-    void gameStart(Player &pyptr);
+
     void gameStart(Player &pyptr, const int playerNum);
     void calChips();
     void decisionInput();
@@ -1376,43 +1380,11 @@ void Game::enemySort()
     }
 }
 
-void Game::gameStart(Player &pyptr)
-{
-    cout << "[遊戲名稱] 開始！" << endl;
-    Drunkard* d = new Drunkard("Drunkard");
-    Rich* r = new Rich("Rich");
-    Math* m = new Math("Math");
-    //隨機分配三個角色的順序，最後再加上player
-    this->addPlayer(pyptr);
-    int ran = rand()%3;
-    //int ran = 0;
-    if(ran == 0)
-    {
-        this->playerList.push_back(d);
-        this->playerList.push_back(r);
-        this->playerList.push_back(m);
-        cout << "你的對手為：酒鬼、富豪、數學家" << endl;
-    }
-    else if(ran == 1)
-    {
-        this->playerList.push_back(r);
-        this->playerList.push_back(m);
-        this->playerList.push_back(d);
-        cout << "你的對手為：富豪、數學家、酒鬼" << endl;
-    }
-    else
-    {
-        this->playerList.push_back(m);
-        this->playerList.push_back(d);
-        this->playerList.push_back(r);
-        cout << "你的對手為：數學家、酒鬼、富豪" << endl;
-    }
-    //結束後跳回main新增player
-}
+
 
 void Game::gameStart(Player &pyptr, const int playerNum)
 {
-    vector<string> nameList = {"Fourier", "Jay Chou", "Euler", "Ramam", "Newton", "Swift", "Faker", "Lee", "Chen", "Yttria"};
+    vector<string> nameList = {"Fourier", "Jay Chou", "Euler", "Ramam", "Newton", "Swift", "Faker", "Lee", "Chen", "Yttria", "AsiaGodTone"};
     
     for(int i = 0; i < 2 * playerNum; i++){
         int idx1 = rand() % nameList.size();
@@ -1677,7 +1649,6 @@ void Game::printFinalResult()
         {
             winner = playerList[i];
             winnerChips = playerList[i]->totalChips;
-            //尚未考慮同樣籌碼數要看顏色
         }
     }
     winner->printWinner();
@@ -1721,7 +1692,7 @@ bool Game::endRound()
 int main()
 {
     srand(time(nullptr));
-    int playerNum = 0;
+    int playerNum = 3;//預設值3
     cout << "請輸入玩家人數(2~10): ";
     cin >> playerNum;
     // main for test
@@ -1740,11 +1711,17 @@ int main()
         G.printPlayerList();
         G.initCardList();
         G.dealCard(0);
+        cout << setw(20) << setfill('-') << "發基本符號牌三張" << setw(20)  << setfill(' ') << endl;
+        G.printPlayersCard();
         G.biddingPerRound(0);
         G.dealCard(1);
+        cout << setw(20) << setfill('-') << "發暗牌一張，公開牌兩張" << setw(20)  << setfill(' ') << endl;
+        G.printPlayersCard();
         cout << setw(20) << setfill('-') << "" << "BID  1"  << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(1);
         G.dealCard(2);
+        cout << setw(20) << setfill('-') << "發公開牌一張" << setw(20)  << setfill(' ') << endl;
+        G.printPlayersCard();
         cout << setw(20) << setfill('-') << "" << "BID  2"  << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(2);
         G.printPlayersCard();
