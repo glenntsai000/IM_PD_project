@@ -181,6 +181,141 @@ void Character::swapCard(Card *c1, Card *c2)
 
 double Character::calCard()
 {
+    double value = 0;
+    
+    if(this->cardArr[3]->getValue().compare("*") == 0 || this->cardArr[3]->getValue().compare("/") == 0){
+        if((this->cardArr[1]->getValue().compare("*") == 0 || this->cardArr[1]->getValue().compare("/") == 0) 
+        && (this->cardArr[5]->getValue().compare("*") != 0 && this->cardArr[5]->getValue().compare("/") != 0)){
+            // 乘除連號出現在前面 a*b/c+d
+            value += stod(this->cardArr[0]->getValue());
+            if(this->cardArr[1]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[2]->getValue());
+            }
+            else if(this->cardArr[1]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[2]->getValue());
+            }
+
+            if(this->cardArr[3]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[4]->getValue());
+            }
+            else if(this->cardArr[3]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[4]->getValue());
+            }
+
+            if(this->cardArr[5]->getValue().compare("+") == 0){
+                value += stod(this->cardArr[6]->getValue());
+            }
+            else if(this->cardArr[5]->getValue().compare("-") == 0){
+                value -= stod(this->cardArr[6]->getValue());
+            }
+        }
+        else if((this->cardArr[1]->getValue().compare("*") != 0 || this->cardArr[1]->getValue().compare("/") != 0) 
+        && (this->cardArr[5]->getValue().compare("*") == 0 && this->cardArr[5]->getValue().compare("/") == 0)){
+            // 乘除連號出現在後面 a+b/c*d
+            value += stod(this->cardArr[2]->getValue());
+            if(this->cardArr[3]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[4]->getValue());
+            }
+            else if(this->cardArr[3]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[4]->getValue());
+            }
+
+            if(this->cardArr[5]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[6]->getValue());
+            }
+            else if(this->cardArr[5]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[6]->getValue());
+            }
+
+            if(this->cardArr[1]->getValue().compare("+") == 0){
+                value += stod(this->cardArr[0]->getValue());
+            }
+            else if(this->cardArr[1]->getValue().compare("-") == 0){
+                value -= stod(this->cardArr[0]->getValue()) - value;
+            }
+        }
+        else if((this->cardArr[1]->getValue().compare("*") == 0 || this->cardArr[1]->getValue().compare("/") == 0) 
+        && (this->cardArr[5]->getValue().compare("*") == 0 || this->cardArr[5]->getValue().compare("/") == 0)){
+            // 所有符號都是乘除 a*b/c*d
+            value += stod(this->cardArr[0]->getValue());
+            if(this->cardArr[1]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[2]->getValue());
+            }
+            else if(this->cardArr[1]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[2]->getValue());
+            }
+
+            if(this->cardArr[3]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[4]->getValue());
+            }
+            else if(this->cardArr[3]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[4]->getValue());
+            }
+
+            if(this->cardArr[5]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[6]->getValue());
+            }
+            else if(this->cardArr[5]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[6]->getValue());
+            }
+        }
+    }
+    else{
+        // 若中間的符號不是＊／，不能出現乘除連號
+        // 判斷是a*b+c+d 還是a*b+c*d
+        bool mul_devAt5 = false;
+        if(this->cardArr[5]->getValue().compare("*") == 0 || this->cardArr[5]->getValue().compare("/") == 0)
+            mul_devAt5 = true;
+        
+        value += stod(this->cardArr[0]->getValue());
+        if(mul_devAt5 == false){
+            for(int i = 1; i < cardInHand; i+=2){
+                if(this->cardArr[i]->getValue().compare("+") == 0){
+                    value += stod(this->cardArr[i + 1]->getValue());
+                }
+                else if(this->cardArr[i]->getValue().compare("-") == 0){
+                    value -= stod(this->cardArr[i + 1]->getValue());
+                }
+                else if(this->cardArr[i]->getValue().compare("*") == 0){
+                    value *= stod(this->cardArr[i + 1]->getValue());
+                }
+                else if(this->cardArr[i]->getValue().compare("/") == 0){
+                    value /= stod(this->cardArr[i + 1]->getValue());
+                }
+            }
+        }
+        else{
+            double value2 = stod(this->cardArr[4]->getValue());
+            
+            if(this->cardArr[1]->getValue().compare("*") == 0){
+                value *= stod(this->cardArr[2]->getValue());
+            }
+            else if(this->cardArr[1]->getValue().compare("/") == 0){
+                value /= stod(this->cardArr[2]->getValue());
+            }
+
+            if(this->cardArr[5]->getValue().compare("*") == 0){
+                value2 *= stod(this->cardArr[6]->getValue());
+            }
+            else if(this->cardArr[5]->getValue().compare("/") == 0){
+                value2 /= stod(this->cardArr[6]->getValue());
+            }
+
+            if(this->cardArr[3]->getValue().compare("+") == 0){
+                value += value2;
+            }
+            else if(this->cardArr[3]->getValue().compare("-") == 0){
+                value -= value2;
+            }
+        }
+    }
+
+    return value;
+}
+
+/*
+double Character::calCard()
+{
     double value = stod(this->cardArr[0]->getValue());
     int idx = 1;
 
@@ -266,6 +401,7 @@ double Character::calCard()
     // cout << "d";
     return value;
 }
+*/
 
 void Character::printHandCard()
 {
@@ -503,13 +639,18 @@ void Player::printWinner()
 
 void Player::throwCard(Card* c)
 {
-    this->printHandCard();
-    if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0)
+    if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0){
+        this->printHandCard();
         cout << "抽到＊需要丟掉一張＋或—，請選擇(輸入q丟棄＊）：";
-    else if(this->cardArr[0]->getValue().compare("*") == 0 && this->cardArr[0]->getValue().compare("*") != 0)
+    }
+    else if(this->cardArr[0]->getValue().compare("*") == 0 && this->cardArr[0]->getValue().compare("*") != 0){
+        this->printHandCard();
         cout << "抽到＊需要丟掉一張—，請選擇是否丟棄—(Y/N）：";
-    else if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[0]->getValue().compare("*") == 0)
+    }
+    else if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[0]->getValue().compare("*") == 0){
+        this->printHandCard();
         cout << "抽到＊需要丟掉一張＋，請選擇是否丟棄＋(Y/N）：";
+    }
     else
         return;
     
@@ -1380,8 +1521,6 @@ void Game::enemySort()
     }
 }
 
-
-
 void Game::gameStart(Player &pyptr, const int playerNum)
 {
     vector<string> nameList = {"Fourier", "Jay Chou", "Euler", "Ramam", "Newton", "Swift", "Faker", "Lee", "Chen", "Yttria", "AsiaGodTone"};
@@ -1711,16 +1850,16 @@ int main()
         G.printPlayerList();
         G.initCardList();
         G.dealCard(0);
-        cout << setw(20) << setfill('-') << "發基本符號牌三張" << setw(20)  << setfill(' ') << endl;
+        cout << setw(20) << setfill('-') << "" << "發基本符號牌三張" << setw(20) << "" << setfill(' ') << endl;
         G.printPlayersCard();
         G.biddingPerRound(0);
         G.dealCard(1);
-        cout << setw(20) << setfill('-') << "發暗牌一張，公開牌兩張" << setw(20)  << setfill(' ') << endl;
+        cout << setw(20) << setfill('-') << "" <<"發暗牌一張，公開牌兩張" << setw(20) << "" << setfill(' ') << endl;
         G.printPlayersCard();
         cout << setw(20) << setfill('-') << "" << "BID  1"  << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(1);
         G.dealCard(2);
-        cout << setw(20) << setfill('-') << "發公開牌一張" << setw(20)  << setfill(' ') << endl;
+        cout << setw(20) << setfill('-') << "" << "發公開牌一張" << setw(20) << "" << setfill(' ') << endl;
         G.printPlayersCard();
         cout << setw(20) << setfill('-') << "" << "BID  2"  << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(2);
@@ -1728,8 +1867,11 @@ int main()
         G.enemySort();
         G.decisionInput();
         G.printResult();
+        cout << RED << "printResult pass" << NC << endl; // debug
         G.calChips();
+        cout << RED << "calChip pass" << NC << endl; // debug
         G.kickoutPlayer(); // 將籌碼歸零的玩家移除playerList;
+        cout << RED << "kuckoutPlayer pass" << NC << endl; // debug
         G.printPlayerList();
         continueGame = G.endRound();
         if(continueGame == false)
