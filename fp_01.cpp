@@ -354,7 +354,7 @@ int Player::biddingChips(const int currChip, const int limitChip)
 {
     // throw error
     int lst = currChip - chipBiddenThisRound;
-    if(lst == 0)
+    if(lst == 0 && this->chipBiddenThisRound != 1)
         return 0;
     cout << "請進行下注: (請輸入" << currChip - chipBiddenThisRound << "~" << limitChip << "的值，若要放棄下注請輸入-1)" << endl;
     int playerbid;
