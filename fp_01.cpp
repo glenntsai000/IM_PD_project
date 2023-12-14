@@ -14,7 +14,7 @@ using namespace std;
 #define RED "\e[0;91m"
 #define GREEN "\e[0;92m"
 #define BLUE "\e[0;94m"
-
+#define BOLD "\033[1m"
 
 const int initialTotalChips = 10;
 const int cardInHand = 7;
@@ -354,6 +354,8 @@ int Player::biddingChips(const int currChip, const int limitChip)
 {
     // throw error
     int lst = currChip - chipBiddenThisRound;
+    if(lst == 0)
+        return 0;
     cout << "請進行下注: (請輸入" << currChip - chipBiddenThisRound << "~" << limitChip << "的值，若要放棄下注請輸入-1)" << endl;
     int playerbid;
     cin >> playerbid;
@@ -501,6 +503,7 @@ void Player::printWinner()
 
 void Player::throwCard(Card* c)
 {
+    this->printHandCard();
     if(this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0)
         cout << "抽到＊需要丟掉一張＋或—，請選擇(輸入q丟棄＊）：";
     else if(this->cardArr[0]->getValue().compare("*") == 0 && this->cardArr[0]->getValue().compare("*") != 0)
@@ -1353,11 +1356,13 @@ void Game::printPlayerList()
     cout << "      NAME    " << "CHARACTER" << "   CHIPS" << endl;
     for (int i = 0; i < playerList.size(); i++)
     {
+        if(this->playerList[i]->isPlayer == true)
+            cout << BOLD;
         cout << setw(10);
         this->playerList[i]->printName();
         cout << setw(13) << this->playerList[i]->type;
         cout << setw(8) << this->playerList[i]->getTotalChips();
-        cout << endl;
+        cout << NC << endl;
     }
     cout << "===============================" << endl;
 }
