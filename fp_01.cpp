@@ -1642,7 +1642,7 @@ void Game::biddingPerRound(int rnd)
                     }
                 }
 
-                cout << endl;
+                //cout << endl;
 
                 // for (int i = 0; i < playerListPerRnd.size(); i++)
                 // {
@@ -1662,7 +1662,7 @@ void Game::biddingPerRound(int rnd)
                 }
                 if (cntSame == playerListPerRnd.size())
                     bidEnd = true;
-                cout << endl;
+                //cout << endl;
             }
         }
         cout << "\n本輪下注結束" << endl;
