@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <limits>
 #include <stdexcept>
+#include <cmath>
 
 using namespace std;
 
@@ -399,93 +400,6 @@ double Character::calCard()
 
     return value;
 }
-
-/*
-double Character::calCard()
-{
-    double value = stod(this->cardArr[0]->getValue());
-    int idx = 1;
-
-    while (idx < cardInHand)
-    {
-        if (this->cardArr[idx]->getValue().compare("+") == 0)
-        {
-            idx++;
-            value += stod(this->cardArr[idx]->getValue());
-            idx++;
-        }
-        else if (this->cardArr[idx]->getValue().compare("-") == 0)
-        {
-            idx++;
-            value -= stod(this->cardArr[idx]->getValue());
-            idx++;
-        }
-        else if (this->cardArr[idx]->getValue().compare("*") == 0)
-        {
-            // idx = 符號
-            if (idx >= 3)
-            {
-                bool frontIsPlus = true;
-                if (this->cardArr[idx - 2]->getValue().compare("+") == 0)
-                    value -= stod(this->cardArr[idx - 1]->getValue());
-                else if (this->cardArr[idx - 2]->getValue().compare("-") == 0)
-                {
-                    value += stod(this->cardArr[idx - 1]->getValue());
-                    frontIsPlus = false;
-                }
-
-                idx++;
-                // idx = 數字
-                double first = 0;
-                first = stod(this->cardArr[idx - 2]->getValue()) * stod(this->cardArr[idx]->getValue());
-                if (frontIsPlus)
-                    value += first;
-                else
-                    value -= first;
-            }
-            else
-            {
-                idx++;
-                // idx = 數字
-                value *= stod(this->cardArr[idx]->getValue());
-            }
-            idx++;
-        }
-        else if (this->cardArr[idx]->getValue().compare("/") == 0)
-        {
-            // idx = 符號
-            if (idx >= 3)
-            {
-                bool frontIsPlus = true;
-                if (this->cardArr[idx - 2]->getValue().compare("+") == 0)
-                    value -= stod(this->cardArr[idx - 1]->getValue());
-                else if (this->cardArr[idx - 2]->getValue().compare("-") == 0)
-                {
-                    value += stod(this->cardArr[idx - 1]->getValue());
-                    frontIsPlus = false;
-                }
-                idx++;
-                // idx = 數字
-                double first = 0;
-                first = stod(this->cardArr[idx - 2]->getValue()) / stod(this->cardArr[idx]->getValue());
-                if (frontIsPlus)
-                    value += first;
-                else
-                    value -= first;
-            }
-            else
-            {
-                idx++;
-                // idx = 數字
-                value /= stod(this->cardArr[idx]->getValue());
-            }
-
-            idx++;
-        }
-    }
-    return value;
-}
-*/
 
 void Character::printHandCard()
 {
@@ -1808,7 +1722,7 @@ void Game::enemySort()
 
 void Game::gameStart(Player &pyptr, const int playerNum)
 {
-    vector<string> nameList = {"Fourier", "Jay Chou", "Euler", "Ramam", "Newton", "Swift", "Faker", "Lee", "Chen", "Yttria", "AsiaGodTone"};
+    vector<string> nameList = {"Fourier", "Jay Chou", "Euler", "Ramam", "Newton", "Swift", "Faker", "Lee", "Chen", "Yttria", "GodTone"};
 
     for (int i = 0; i < 2 * playerNum; i++)
     {
@@ -1817,7 +1731,7 @@ void Game::gameStart(Player &pyptr, const int playerNum)
         iter_swap((nameList.begin() + idx1), (nameList.begin() + idx2));
     }
 
-    cout << "[遊戲名稱] 開始！" << endl;
+    cout << "慈善撲克大賽 開始！" << endl;
     int ran;
     this->addPlayer(pyptr);
     // 隨機加入不同角色的電腦玩家
@@ -2135,7 +2049,7 @@ void Game::kickoutPlayer()
 
 bool Game::endRound()
 {
-    if (this->playerList.size() == 1)
+    if (this->playerList.size() == 1 || this->playerAlive == false)
     {
         return false;
     }
@@ -2155,7 +2069,7 @@ int main()
 {
     srand(time(nullptr));
     int playerNum = 3; // 預設值3
-    cout << "[GAME NAME]" << endl;
+    cout << "慈善撲克大賽" << endl;
     cout << "[GAME RULE]" << endl;
     cout << "請輸入玩家人數(2~10): ";
     while (true)
