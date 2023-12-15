@@ -159,7 +159,6 @@ public:
     virtual void sortCard(){};
     virtual void sortCard(string order){};                                 // Implement?
     virtual int biddingChips(const int currChip, const int limitChip) = 0; // 前一人下注的籌碼
-    virtual void setBigOrSmall(bool isBig) { this->bigOrSmall = isBig; };
     virtual void printWinner() = 0;
     virtual void throwCard(Card *c); // 只能丟+ or -
     friend class Game;
@@ -1116,12 +1115,12 @@ int Math::biddingChips(const int currChip, const int limitChip)
 
             difference = abs(result - target); // 計算跟target的差距
 
-            if (difference <= 3)
-                bid = limitChip; // difference < 3 就 all in
-            else if (difference > 3 and difference <= 6)
-                bid = ((currChip - chipBiddenThisRound) + limitChip) / 2; // 3 <  difference <= 6 就取中間
-            else if (difference > 6 and difference <= 10)
-                bid = currChip - chipBiddenThisRound; // 6 <  difference <= 10 就下最少
+            if (difference <= 1)
+                bid = limitChip; // difference < 1 就 all in
+            else if (difference > 1 and difference <= 3)
+                bid = ((currChip - chipBiddenThisRound) + limitChip) / 2; // 1 <  difference <= 3 就取中間
+            else if (difference > 3 and difference <= 20)
+                bid = currChip - chipBiddenThisRound; // 3 <  difference <= 20 就下最少
             else
             {
                 this->isFoldThisRound = true; // difference > 10 就棄牌
@@ -1133,6 +1132,7 @@ int Math::biddingChips(const int currChip, const int limitChip)
                 this->chipBiddenThisRound += bid;
         }
     }
+    else
     {
         this->isFoldThisRound = true; // difference > 10 就棄牌
         bid = -1;                     // 棄牌回傳 -1
@@ -1170,7 +1170,8 @@ void Math::sortCard()
 
     // 儲存最小差距的絕對值和對應的結果
     double minDifference = numeric_limits<double>::infinity();
-    double result = 0;
+    double minDifference1 = numeric_limits<double>::infinity();
+    double minDifference20 = numeric_limits<double>::infinity();
     vector<Card *> updatedCardArr; // 暫存更新後的卡牌排列
 
     // 窮舉所有可能的排列組合
@@ -1253,10 +1254,9 @@ void Math::sortCard()
             if (currentDifference1 < minDifference or currentDifference20 < minDifference)
             {
                 minDifference = min(currentDifference1, currentDifference20);
-                result = currentResult;
+                minDifference1 = currentDifference1;
+                minDifference20 = currentDifference20;
 
-                if (currentDifference20 < currentDifference1)
-                    this->setBigOrSmall(true);
 
                 // 將數字卡片和符號卡片放入 updatedCardArr
                 symbolIndex = 0;
@@ -1273,6 +1273,10 @@ void Math::sortCard()
             }
         } while (next_permutation(numberCards.begin(), numberCards.end())); // 產生所有數字卡牌的排列組合
     } while (next_permutation(symbolCards.begin(), symbolCards.end()));     // 產生所有符號卡牌的排列組合
+
+    if (minDifference20 < minDifference1)
+        this->bigOrSmall = true;
+
 
     // 複製更新後的卡牌陣列回原始 cardArr
     for (size_t i = 0; i < 7; i++)
@@ -2013,7 +2017,7 @@ void Game::decisionInput()
         if (input == 'S')
             bidDirection = false;
 
-        playerListPerRnd[playerPos]->setBigOrSmall(bidDirection);
+        playerListPerRnd[playerPos]->bigOrSmall = bidDirection;
         playerListPerRnd[playerPos]->sortCard();
     }
 }
