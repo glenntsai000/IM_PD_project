@@ -1588,6 +1588,8 @@ void Game::biddingPerRound(int rnd)
                     //     continue; // 已棄牌
                     // cout << this->playerListPerRnd[i]->name << " 已下注數量: " <<
                     // this->playerListPerRnd[i]->chipBiddenThisRound << endl; 加注
+                    if(this->playerListPerRnd[i]->isFoldThisRound)
+                        continue;
                     int pyBidNum = 0;
 
                     if (startBid != true && currChip == this->playerListPerRnd[i]->chipBiddenThisRound) // 此輪非第一次加注，但加注總數量與上次相同
@@ -1607,9 +1609,10 @@ void Game::biddingPerRound(int rnd)
                     {
                         cout << setw(10) << left;
                         cout << this->playerListPerRnd[i]->name << "放棄這回合" << endl;
+                        this->playerListPerRnd[i]->isFoldThisRound = true;
                         if (this->playerList[i]->isPlayer == true)
                             this->playerFold = true;
-                        continue;
+                        //continue;
                     }
 
                     // remove from playerlist this rnd
@@ -1638,7 +1641,7 @@ void Game::biddingPerRound(int rnd)
                         this->playerListPerRnd.erase(this->playerListPerRnd.begin() + i);
                         // cout << "someone fold;; " << playerListPerRnd.size() <<
                         // playerList.size() << endl;
-                        i--;
+                        //i--;
                     }
                 }
 
@@ -1666,6 +1669,16 @@ void Game::biddingPerRound(int rnd)
             }
         }
         cout << "\n本輪下注結束" << endl;
+        for (int i = 0; i < playerListPerRnd.size(); i++)
+        {
+            if (this->playerListPerRnd[i]->isFoldThisRound)
+            {
+                this->playerListPerRnd.erase(this->playerListPerRnd.begin() + i);
+                // cout << "someone fold;; " << playerListPerRnd.size() <<
+                // playerList.size() << endl;
+                //i--;
+            }
+        }
         Game::biddingPrint();
         cout << "本回合現在下注總數: " << chipsInRound << endl
              << endl;
