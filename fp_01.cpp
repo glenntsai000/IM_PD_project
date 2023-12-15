@@ -861,7 +861,7 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
     int diff = currChip - this->chipBiddenThisRound;
     if (this->totalChips == 0)
     {
-        return 0; // 棄牌?
+        return -1; // 棄牌?
     }
 
     int bid = 0;
@@ -875,10 +875,12 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
             if (rand() % 2 == 0)
                 bid = diff;
             else
-                bid = 0;
+                bid = -1;
         }
     }
-    this->chipBiddenThisRound += bid;
+    if(bid != -1)
+        this->chipBiddenThisRound += bid;
+    
     return bid;
 }
 
@@ -1677,7 +1679,13 @@ void Game::biddingPrint()
 
     for (int i = 0; i < playerListPerRnd.size(); i++)
     {
-        printf("|%-12s|%-10d|%-10d|%-10d|\t", this->playerListPerRnd[i]->name.c_str(), this->playerListPerRnd[i]->chipsRaised, this->playerListPerRnd[i]->chipBiddenThisRound, this->playerListPerRnd[i]->totalChips);
+        string raised;
+        if(this->playerListPerRnd[i]->chipsRaised == -1)
+            raised = "x";
+        else
+            raised = to_string(this->playerListPerRnd[i]->chipsRaised);
+
+        printf("|%-12s|%-10s|%-10d|%-10d|\t", this->playerListPerRnd[i]->name.c_str(), raised.c_str(), this->playerListPerRnd[i]->chipBiddenThisRound, this->playerListPerRnd[i]->totalChips);
         cout << endl;
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
@@ -1960,7 +1968,6 @@ void Game::decisionInput()
     if (this->playerAlive == true && this->playerFold == false)
     {
         // 第二輪下注結束
-        // cout << "fold?" << playerFold << endl;
         //  找玩家的位置
         int playerPos = 0;
         for (int i = 0; i < this->playerListPerRnd.size(); i++)
@@ -2045,7 +2052,7 @@ bool Game::endRound()
     {
         return false;
     }
-
+    this->playerFold = false;
     for (int i = 0; i < this->playerList.size(); i++)
     {
         for (int j = 0; j < cardInHand; j++)
