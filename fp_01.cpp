@@ -1731,7 +1731,7 @@ void Game::gameStart(Player &pyptr, const int playerNum)
         iter_swap((nameList.begin() + idx1), (nameList.begin() + idx2));
     }
 
-    cout << "慈善撲克大賽 開始！" << endl;
+    cout << "資管盃慈善德州撲克大賽 開始！" << endl;
     int ran;
     this->addPlayer(pyptr);
     // 隨機加入不同角色的電腦玩家
@@ -2069,7 +2069,7 @@ int main()
 {
     srand(time(nullptr));
     int playerNum = 3; // 預設值3
-    cout << "慈善撲克大賽" << endl;
+    cout << "資管盃慈善德州撲克大賽" << endl;
     cout << "[GAME RULE]" << endl;
     cout << "請輸入玩家人數(2~10): ";
     while (true)
