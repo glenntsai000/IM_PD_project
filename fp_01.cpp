@@ -8,7 +8,6 @@
 #include <limits>
 #include <stdexcept>
 #include <cmath>
-
 using namespace std;
 
 #define NC "\e[0m"
@@ -1304,17 +1303,10 @@ private:
 
 public:
     Game();
-    // ~Game()
-    // {
-    //     for (int i = 0; i < playerList.size(); i++)
-    //         delete playerList[i]; // this is needed to free the memory
-    // };
     void addPlayer(Player &pyptr);
-    // 發牌
     void initPlayerRnd();
     void initCardList();
     void dealCard(int rnd);
-    //
     void printPlayersCard();
     void printPlayerChips(int num);
     void biddingPerRound(int rnd);
@@ -1323,13 +1315,13 @@ public:
     void printResult();
     void printPlayerList();
     void enemySort();
-
     void gameStart(Player &pyptr, const int playerNum);
     void calChips();
     void decisionInput();
     void printFinalResult();
     void kickoutPlayer();
     bool endRound();
+    void printShortRule();
 };
 
 Game::Game()
@@ -2065,12 +2057,31 @@ bool Game::endRound()
     return true;
 }
 
+void Game::printShortRule()
+{
+    cout << "歡迎來到" << BOLD << "資管盃慈善德州撲克大賽" << NC <<endl;
+    cout << "每位玩家要根據自己的手牌，組出一個數學式，使得該數學式結果盡可能接近或等於20或1，並選擇下注大(B)或小(S)" << endl;
+    cout << "遊戲流程如下：" << endl;
+    cout << "根據玩家人數進行對應的回合數，每回合包括第一輪發牌、第一輪下注、第二輪發牌、第二輪下注、選擇下注的方向與排列數字牌與公布結果" << endl;
+    cout << "發牌：每個玩家回合一開始都有三張基本牌(+, -, /)，第一輪發牌會發一張數字牌作為暗牌，兩張公開牌(可能包含 * ，抽到需丟棄一張 + 或 -，並重新抽一張數字牌)，" << endl;
+    cout << "      第二輪發牌會再拿到一張公開牌，至此玩家手上有七張牌。" << endl << endl;
+    cout << "下注：在每回合開始時，玩家需要下注一個籌碼，下注時每一位玩家下注的下限是前一位玩家這回合下注的數量，上限是該回合玩家擁有籌碼數量的最小值，直到所有下注玩家下注的籌碼相同。" << endl << endl;
+    cout << "玩家可根據手牌與其他玩家的公開牌選擇下注大或小，選擇大者，需要排列手牌使數學式結果接近或等於20，反之。與目標差距最小者獲勝，該回合賭大獲勝者與賭小獲勝者會平分該回合下注的籌碼。" << endl;
+    cout << "若遇到差距相同則比較數字牌大小，一共有四種顏色：" << RED << "|1| " << GREEN << "|1| " << BLUE << "|1| " << NC << "|1|，大小順序為：" << RED << "|1|" << NC << ">" GREEN << "|1|" << NC << ">"<< BLUE << "|1|" << NC << ">" << "|1|，"
+         << "賭大的回合中擁有最大數字牌，或賭小回合中擁有最小數字牌的玩家(數字相同會比較牌的顏色)將得以勝出" << endl;
+    cout << "PS. x / 0 = inf for all x ≠ 0， 0 / 0 is undefined，會直接判定該回合落敗" << endl;
+    cout << "按Enter繼續...";
+    cin.get();
+    getchar();
+    cout << endl << endl;
+}
+
+
 int main()
 {
     srand(time(nullptr));
     int playerNum = 3; // 預設值3
     cout << "資管盃慈善德州撲克大賽" << endl;
-    cout << "[GAME RULE]" << endl;
     cout << "請輸入玩家人數(2~10): ";
     while (true)
     {
@@ -2104,6 +2115,7 @@ int main()
     cout << " 歡迎加入遊戲！" << endl;
     cout << "\n";
     Game G;
+    G.printShortRule();
     G.gameStart(py, playerNum);
     bool continueGame = true;
 
