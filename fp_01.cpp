@@ -478,7 +478,7 @@ double Character::calCard()
 
 void Character::printHandCard()
 {
-    cout << setw(10) << right << this->name << " : " << left;
+    cout << setw(12) << right << this->name << " : " << left;
     for (int i = 0; i < this->cardArr.size(); i++)
     {
         if (this->cardArr[i]->getVisibility() == true)
@@ -711,14 +711,14 @@ void Player::printHandCard()
 {
     cout << "-------------" << setw(10) << right << this->name << setw(10) << left << "'s hand"
          << "-------------" << endl;
-    cout << setw(13) << "Hand : ";
+    cout << setw(15) << "Hand : ";
     for (int i = 0; i < this->cardArr.size(); i++)
     {
         this->cardArr[i]->printCard();
         cout << " ";
     }
     cout << endl;
-    cout << setw(13) << "Public : ";
+    cout << setw(15) << "Public : ";
     for (int i = 0; i < this->cardArr.size(); i++)
     {
         if (this->cardArr[i]->getVisibility() == true)
@@ -728,7 +728,7 @@ void Player::printHandCard()
         }
     }
     cout << endl;
-    cout << setw(13) << "Hidden : ";
+    cout << setw(15) << "Hidden : ";
     for (int i = 0; i < this->cardArr.size(); i++)
     {
         if (this->cardArr[i]->getVisibility() == false)
@@ -2144,7 +2144,7 @@ int main()
     for (int i = 1; i <= 3; i++)
     {
         cout << setw(20) << setfill('-') << ""
-             <<BOLD << "ROUND" << i <<  NC << setw(20) << "" << setfill(' ') << endl;
+             << BOLD << "ROUND" << i <<  NC << setw(20) << "" << setfill(' ') << endl;
         G.printPlayerList();
         G.initPlayerRnd();
         G.initCardList();
