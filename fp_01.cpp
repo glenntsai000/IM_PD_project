@@ -229,7 +229,7 @@ double Character::calCard()
                 value -= stod(this->cardArr[6]->getValue());
             }
         }
-        else if ((this->cardArr[1]->getValue().compare("*") != 0 || this->cardArr[1]->getValue().compare("/") != 0) && (this->cardArr[5]->getValue().compare("*") == 0 && this->cardArr[5]->getValue().compare("/") == 0))
+        else if ((this->cardArr[1]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("/") != 0) && (this->cardArr[5]->getValue().compare("*") == 0 || this->cardArr[5]->getValue().compare("/") == 0))
         {
             // 乘除連號出現在後面 a+b/c*d
             value += stod(this->cardArr[2]->getValue());
@@ -360,7 +360,15 @@ double Character::calCard()
         {
             double value2 = stod(this->cardArr[4]->getValue());
 
-            if (this->cardArr[1]->getValue().compare("*") == 0)
+            if (this->cardArr[1]->getValue().compare("+") == 0)
+            {
+                value += stod(this->cardArr[2]->getValue());
+            }
+            else if (this->cardArr[1]->getValue().compare("-") == 0)
+            {
+                value -= stod(this->cardArr[2]->getValue());
+            }
+            else if (this->cardArr[1]->getValue().compare("*") == 0)
             {
                 value *= stod(this->cardArr[2]->getValue());
             }
