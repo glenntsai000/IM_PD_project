@@ -258,7 +258,7 @@ double Character::calCard()
             }
             else if (this->cardArr[1]->getValue().compare("-") == 0)
             {
-                value -= stod(this->cardArr[0]->getValue()) - value;
+                value = stod(this->cardArr[0]->getValue()) - value;
             }
         }
         else if ((this->cardArr[1]->getValue().compare("*") == 0 || this->cardArr[1]->getValue().compare("/") == 0) && (this->cardArr[5]->getValue().compare("*") == 0 || this->cardArr[5]->getValue().compare("/") == 0))
