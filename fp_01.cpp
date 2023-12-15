@@ -1772,6 +1772,7 @@ void Game::gameStart(Player &pyptr, const int playerNum)
     cout << "[遊戲名稱] 開始！" << endl;
     int ran;
     this->addPlayer(pyptr);
+    // 隨機加入不同角色的電腦玩家
     for (int i = 1; i < playerNum; i++)
     {
         ran = rand() % 3;
@@ -1793,7 +1794,7 @@ void Game::gameStart(Player &pyptr, const int playerNum)
         nameList.pop_back();
     }
     nameList.clear();
-
+    // 重新分配玩家順序
     for (int i = 0; i < 2 * this->playerList.size(); i++)
     {
         int idx1 = rand() % this->playerList.size();
@@ -1892,9 +1893,15 @@ void Game::printResult()
             }
             else if (difference == closestBigDifference)
             {
-                // 在賭大的情況下，處理同分的情況
-                if (playerListPerRnd[i]->getMaxCard() > bigWinner->getMaxCard())
-                {
+                if(bigWinner != nullptr){
+                    // 在賭大的情況下，處理同分的情況
+                    if (playerListPerRnd[i]->getMaxCard() > bigWinner->getMaxCard())
+                    {
+                        bigWinner = playerListPerRnd[i];
+                        bigWinneridx = i;
+                    }
+                }
+                else{
                     bigWinner = playerListPerRnd[i];
                     bigWinneridx = i;
                 }
@@ -1911,9 +1918,15 @@ void Game::printResult()
             }
             else if (difference == closestSmallDifference)
             {
-                // 在賭小的情況下，處理同分的情況
-                if (playerListPerRnd[i]->getMinCard() < smallWinner->getMinCard())
-                {
+                if(smallWinner != nullptr){
+                    // 在賭小的情況下，處理同分的情況
+                    if (playerListPerRnd[i]->getMinCard() < smallWinner->getMinCard())
+                    {
+                        smallWinner = playerListPerRnd[i];
+                        smallWinneridx = i;
+                    }
+                }
+                else{
                     smallWinner = playerListPerRnd[i];
                     smallWinneridx = i;
                 }
@@ -1921,6 +1934,7 @@ void Game::printResult()
         }
     }
 
+    
     // 回合結果公布：
     if (this->playerAlive == true && this->playerFold == false)
     {
@@ -1951,7 +1965,7 @@ void Game::printResult()
     {
         cout << "沒有賭小的贏家" << endl;
     }
-
+    
     // 輸出其餘玩家的名稱和數學式結果
     cout << "其餘玩家： " << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
@@ -1968,7 +1982,7 @@ void Game::printResult()
             cout << " 數學式結果為：" << playerValue[i] << endl;
         }
     }
-
+    
     // 分配籌碼
     // chipsinround//此輪總籌碼
     if (bigWinner != nullptr and smallWinner != nullptr) // bigWinner和smallWinner都有
@@ -1984,6 +1998,7 @@ void Game::printResult()
     {
         playerListPerRnd[smallWinneridx]->totalChips += chipsInRound;
     }
+    
 }
 
 void Game::decisionInput()
@@ -2129,7 +2144,7 @@ int main()
     for (int i = 1; i <= 3; i++)
     {
         cout << setw(20) << setfill('-') << ""
-             << "ROUND" << i << setw(20) << "" << setfill(' ') << endl;
+             <<BOLD << "ROUND" << i <<  NC << setw(20) << "" << setfill(' ') << endl;
         G.printPlayerList();
         G.initPlayerRnd();
         G.initCardList();
@@ -2150,11 +2165,8 @@ int main()
         G.enemySort();
         G.decisionInput();
         G.printResult();
-        cout << RED << "printResult pass" << NC << endl; // debug
         G.calChips();
-        cout << RED << "calChip pass" << NC << endl;       // debug
         G.kickoutPlayer();                                 // 將籌碼歸零的玩家移除playerList;
-        cout << RED << "kuckoutPlayer pass" << NC << endl; // debug
         G.printPlayerList();
         continueGame = G.endRound();
         if (continueGame == false)
