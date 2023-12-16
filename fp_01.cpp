@@ -1035,9 +1035,7 @@ void Rich::sortCard()
 
 int Rich::biddingChips(const int currChip, const int limitChip)
 {
-    // all in
-    // if (currChip == this->chipBiddenThisRound)
-    //     return 0;
+    int diff = currChip - this->chipBiddenThisRound;
     if (limitChip * 0.5 >= currChip)
     {
         this->chipBiddenThisRound += 0.5 * limitChip;
@@ -1050,8 +1048,8 @@ int Rich::biddingChips(const int currChip, const int limitChip)
     }
     else
     {
-        this->chipBiddenThisRound += limitChip;
-        return limitChip; // 要怎麼知道現在最少的籌碼有幾個
+        this->chipBiddenThisRound += diff;
+        return diff; // 要怎麼知道現在最少的籌碼有幾個
     }
 }
 
@@ -1419,7 +1417,7 @@ void JuDaKo::rez(int leastChips)
     int ran = rand() % 2;
     if(ran == 1)
     {
-        cout << "豬大哥" << this->name << " 復活成功，從大尾鱸鰻3劇組借到" << leastChips << "個籌碼" << endl;
+        cout << "豬大哥" << this->name << "復活成功，從大尾鱸鰻3劇組借到" << leastChips << "個籌碼" << endl;
         this->totalChips = leastChips;
         this->isAlive = true;
     }
@@ -1905,7 +1903,6 @@ void Game::biddingPerRound(int rnd)
         leastChips = 1000; // 這回合擁有最少籌碼的人的籌碼數 為本回合下注的最高限制數量
         for (int i = 0; i < playerListPerRnd.size(); i++)
         {
-            this->playerListPerRnd[i]->isFoldThisRound = false;
             if (this->playerListPerRnd[i]->totalChips < leastChips)
                 leastChips = this->playerListPerRnd[i]->totalChips;
         }
@@ -1934,21 +1931,16 @@ void Game::biddingPerRound(int rnd)
         {
             cout << "\n";
             cout << "加注開始" << endl;
+            bool startBid = true;
             while (bidEnd == false)
             {
                 for (int i = 0; i < playerListPerRnd.size(); i++)
                 {
                     this->playerListPerRnd[i]->chipsRaised = 0;
                 }
-                bool startBid = true;
+                
                 for (int i = 0; i < playerListPerRnd.size(); i++)
                 {
-                    // if (this->playerListPerRnd[i]->isFoldThisRound == true)
-                    //     continue; // 已棄牌
-                    // cout << this->playerListPerRnd[i]->name << " 已下注數量: " <<
-                    // this->playerListPerRnd[i]->chipBiddenThisRound << endl; 加注
-                    //if(this->playerListPerRnd[i]->isFoldThisRound)
-                    //    continue;
                     int pyBidNum = 0;
                     if(this->playerListPerRnd[i]->chipBiddenThisRound == leastChips)
                         continue;
@@ -2046,7 +2038,7 @@ void Game::biddingPerRound(int rnd)
 
 void Game::biddingPrint()
 {
-    printf("%-13s|%-10s|%-10s|%-10s\n", "NAME", "Raised", "Bidding", "Total Chips");
+    printf("%-13s|  %-6s  | %-7s |%-11s\n", "NAME", "Raised", "Bidding", "Total Chips");
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
 
     for (int i = 0; i < playerListPerRnd.size(); i++)
@@ -2057,7 +2049,7 @@ void Game::biddingPrint()
         else
             raised = to_string(this->playerListPerRnd[i]->chipsRaised);
 
-        printf("%-13s|%-10s|%-10d|%-10d\n", this->playerListPerRnd[i]->name.c_str(), raised.c_str(), this->playerListPerRnd[i]->chipBiddenThisRound, this->playerListPerRnd[i]->totalChips);
+        printf("%-13s|  %*s  | %*d |%*d\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
 };
