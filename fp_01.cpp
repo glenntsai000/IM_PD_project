@@ -1115,15 +1115,23 @@ int Math::biddingChips(const int currChip, const int limitChip)
             double result = this->calCard(); // 先取optimal solution(要先呼叫過sortCard才能呼叫biddingChips)
 
             bid = 0;
-            double difference = 0;
-            double target = 0;
+            double difference1 = abs(result - 20); // 和20的差距
+            double difference2 = abs(result - 1);  // 和1的差距
+            double difference;
+            double target;
 
-            if (this->bigOrSmall == true)
+            if (difference1 <= difference2){
+                // big
                 target = 20;
-            else
+                this->bigOrSmall = true;
+                difference = difference1;
+            }
+            else{
+                // small
                 target = 1;
-
-            difference = abs(result - target); // 計算跟target的差距
+                this->bigOrSmall = false;
+                difference = difference2;
+            }
 
             if (difference <= 1)
                 bid = limitChip; // difference < 1 就 all in
@@ -2207,7 +2215,7 @@ void Game::calChips()
     {
         cout << setw(13) << left;
         playerListPerRnd[i]->printName();
-        cout << "|" << "  " <<setw(11) << this->playerListPerRnd[i]->type;
+        cout << "|" << "  " << right << setw(9) << this->playerListPerRnd[i]->type << "  ";
         cout << "|" << setw(15) << right << playerListPerRnd[i]->totalChips << left << endl;
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
@@ -2527,7 +2535,7 @@ int main()
     G.gameStart(py, playerNum);
     bool continueGame = true;
 
-    for (int i = 1; i <= 50; i++)
+    for (int i = 1; i <= playerNum; i++)
     {
         cout << setw(19) << setfill('-') << ""
              << BOLD << "ROUND" << setw(3) << right << setfill(' ') << i << setfill('-') << left << NC << setw(19) << "" << setfill(' ') << endl;
