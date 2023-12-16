@@ -8,6 +8,13 @@
 #include <limits>
 #include <stdexcept>
 #include <cmath>
+#if _Windows
+#include <Windows.h>
+#define SYSTEMLAG = 1000
+#else
+#include <unistd.h>
+#define SYSTEMLAG = 1
+#endif
 using namespace std;
 
 #define NC "\e[0m"
@@ -671,6 +678,8 @@ void Player::printWinner()
 
 void Player::throwCard(Card *c)
 {
+    if(this->isFoldThisRound == true)
+        return;    
     if (this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0)
     {
         this->printHandCard();
@@ -1410,15 +1419,18 @@ void JuDaKo::sortCard()
 
 void JuDaKo::rez(int leastChips)
 {
+    cout << "豬大哥 " << this->name << "復活儀式進行中..." << endl;
+    sleep(3);
     int ran = rand() % 2;
     if(ran == 1)
     {
-        cout << "豬大哥  " << this->name << "  復活成功，又多得到了" << leastChips << "個籌碼" << endl;
+        cout << "豬大哥  " << this->name << "  復活成功，從大尾鱸鰻3劇組借到" << leastChips << "個籌碼" << endl;
         this->totalChips = leastChips;
         this->isAlive = true;
     }
     else
     {
+        cout << "豬大哥 " << this->name << " 復活失敗..." << endl;
         this->isAlive = false;
     }
 }
@@ -1732,8 +1744,13 @@ void Game::biddingPerRound(int rnd)
     {
         cout << "\n";
         bool bidEnd = false;
-        if (currChip == leastChips)
+        if (currChip == leastChips){
+            for (int i = 0; i < playerListPerRnd.size(); i++)
+            {
+                this->playerListPerRnd[i]->chipsRaised = 0;
+            }
             cout << "已達最高下注數，不繼續進行加注" << endl;
+        }
         else
         {
             cout << "\n";
@@ -1773,6 +1790,7 @@ void Game::biddingPerRound(int rnd)
                     {
                         cout << setw(10) << left;
                         cout << this->playerListPerRnd[i]->name << "放棄這回合" << endl;
+                        sleep(0.5);
                         this->playerListPerRnd[i]->isFoldThisRound = true;
                         if (this->playerListPerRnd[i]->isPlayer == true)
                             this->playerFold = true;
@@ -1886,11 +1904,11 @@ void Game::printPlayerList()
 
 void Game::enemySort()
 {
-    // bug here
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
     {
         if (this->playerListPerRnd[i]->isPlayer == false)
             this->playerListPerRnd[i]->sortCard();
+        sleep(0.5);
     }
 }
 
@@ -2032,6 +2050,7 @@ void Game::calChips()
                     this->playerListPerRnd[i]->isAlive = false;
                 }
             }
+            sleep(1);
         }
 }
 
@@ -2236,7 +2255,7 @@ void Game::printFinalResult()
 void Game::kickoutPlayer()
 {
     for(int i = 0;  i < this->playerList.size(); i++){
-        if(this->playerList[i]->isAlive == false){
+        if(this->playerList[i]->totalChips == 0){
             this->playerList.erase(this->playerList.begin() + i);
             i--;
         }
@@ -2321,7 +2340,7 @@ int main()
     G.gameStart(py, playerNum);
     bool continueGame = true;
 
-    for (int i = 1; i <= 3; i++)
+    for (int i = 1; i <= playerNum; i++)
     {
         cout << setw(20) << setfill('-') << ""
              << BOLD << "ROUND" << i <<  NC << setw(20) << "" << setfill(' ') << endl;
@@ -2331,7 +2350,6 @@ int main()
         G.dealCard(0);
         cout << setw(20) << setfill('-') << ""
              << "發基本符號牌三張" << setw(20) << "" << setfill(' ') << endl;
-        // G.printPlayersCard();
         G.biddingPerRound(0);
         G.dealCard(1);
         cout << setw(20) << setfill('-') << ""
