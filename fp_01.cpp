@@ -2344,13 +2344,13 @@ void Game::gameStart(Player &pyptr, const int playerNum)
         }
         else if (ran == 3)
         {
-            JuDaKo *l = new JuDaKo(nameList.back());
-            this->playerList.push_back(l);
+            JuDaKo *j = new JuDaKo(nameList.back());
+            this->playerList.push_back(j);
         }
         else if (ran == 4)
         {
-            Landlord *j = new Landlord(nameList.back());
-            this->playerList.push_back(j);
+            Landlord *l = new Landlord(nameList.back());
+            this->playerList.push_back(l);
         }
         else
         {
