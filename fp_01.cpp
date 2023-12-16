@@ -1649,7 +1649,7 @@ class AbsoluteLoser : public Character
 {
 private:
 public:
-    AbsoluteLoser(const std::string& n) : Character(n, false, "AbsoluteLoser") {};
+    AbsoluteLoser(const std::string& n) : Character(n, false, "Loser") {};
     ~AbsoluteLoser() {};
     void sortCard();
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼(要先呼叫過sortCard才能呼叫biddingChips)
