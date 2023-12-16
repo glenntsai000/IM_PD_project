@@ -1123,9 +1123,9 @@ int Math::biddingChips(const int currChip, const int limitChip)
             if (difference <= 1)
                 bid = limitChip; // difference < 1 就 all in
             else if (difference > 1 and difference <= 3)
-                bid = ((currChip - chipBiddenThisRound) + limitChip) / 2; // 1 <  difference <= 3 就取中間
+                bid = ((currChip - this->chipBiddenThisRound) + limitChip) / 2; // 1 <  difference <= 3 就取中間
             else if (difference > 3 and difference <= 20)
-                bid = currChip - chipBiddenThisRound; // 3 <  difference <= 20 就下最少
+                bid = currChip - this->chipBiddenThisRound; // 3 <  difference <= 20 就下最少
             else
             {
                 this->isFoldThisRound = true; // difference > 10 就棄牌
@@ -1688,9 +1688,9 @@ int AbsoluteLoser::biddingChips(const int currChip, const int limitChip)
             if (difference > 20)
                 bid = limitChip; // difference > 20 就 all in
             else if (difference > 3 and difference <= 20)
-                bid = ((currChip - chipBiddenThisRound) + limitChip) / 2; // 3 <  difference <= 20 就取中間
+                bid = ((currChip - this->chipBiddenThisRound) + limitChip) / 2; // 3 <  difference <= 20 就取中間
             else if (difference > 1 and difference <= 3)
-                bid = currChip - chipBiddenThisRound; // 1 <  difference <= 3 就下最少
+                bid = currChip - this->chipBiddenThisRound; // 1 <  difference <= 3 就下最少
             else
             {
                 this->isFoldThisRound = true; // difference <=1 就棄牌
