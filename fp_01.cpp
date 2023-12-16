@@ -1036,6 +1036,9 @@ void Rich::sortCard()
 int Rich::biddingChips(const int currChip, const int limitChip)
 {
     int diff = currChip - this->chipBiddenThisRound;
+    if(this->totalChips < diff){
+        return -1;
+    }
     if (limitChip * 0.5 >= currChip)
     {
         this->chipBiddenThisRound += 0.5 * limitChip;
@@ -2426,7 +2429,7 @@ void Game::printFinalResult()
 void Game::kickoutPlayer()
 {
     for(int i = 0;  i < this->playerList.size(); i++){
-        if(this->playerList[i]->totalChips == 0){
+        if(this->playerList[i]->totalChips <= 0){
             this->playerList.erase(this->playerList.begin() + i);
             i--;
         }
