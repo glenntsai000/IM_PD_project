@@ -1571,7 +1571,12 @@ void Landlord::sortCard()
 
 int Landlord::biddingChips(const int currChip, const int limitChip){
     int diff = currChip - this->chipBiddenThisRound;
-    if(diff <= this->totalChips){
+    if(diff <= this->totalChips / 2){
+        int bid = this->totalChips / 2;
+        this->chipBiddenThisRound += bid;
+        return bid;
+    }
+    else if(diff > this->totalChips / 2){
         this->chipBiddenThisRound += diff;
         return diff;
     }
@@ -1611,7 +1616,7 @@ void Landlord::sellLand()
     if(this->landNum > 0){
         this->landNum--;
         this->totalChips += this->landPrice;
-        cout << GREEN << "信義區地主" << this->name << "賣掉1筆信義區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landPrice << "筆信義區土地" << NC << endl;
+        cout << GREEN << "信義區地主" << this->name << "賣掉1筆信義區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landNum << "筆信義區土地" << NC << endl;
     }
     else{
         cout << RED << "(前)信義區地主" << this->name << "出局" << NC << endl;
