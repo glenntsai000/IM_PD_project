@@ -1291,6 +1291,155 @@ void Math::printWinner()
          << "最終贏家為： " << this->name << endl;
 }
 
+class JuDaKo : public Character
+{
+friend class Game;
+private:
+    void swapPtr(Card *&p1, Card *&p2);
+public:
+    JuDaKo(const string n); // constructor
+    ~JuDaKo(){};            // destructor
+    void sortCard();
+    bool _findNextIdx(bool isSymbol, int &idx);
+    int biddingChips(const int currChip, const int limitChip);
+    void printWinner();
+    void throwCard(Card *c);
+    void rez();
+};
+
+void JuDaKo::swapPtr(Card *&p1, Card *&p2)
+{
+    Card *temp = p1;
+    p1 = p2;
+    p2 = temp;
+}
+
+JuDaKo::JuDaKo(const string n) : Character(n, false, "JuDaKo")
+{  
+    this->bigOrSmall = rand() % 2;
+};
+
+bool JuDaKo::_findNextIdx(bool isSymbol, int &idx)
+{
+    for (int i = idx + 1; i < 7; i++)
+    {
+        if (isSymbol)
+        {
+            if (this->cardArr[i]->isSymbolCard() == true)
+            {
+                idx = i;
+                return true;
+            }
+        }
+        else
+        {
+            if (this->cardArr[i]->isSymbolCard() == false)
+            {
+                idx = i;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void JuDaKo::sortCard()
+{
+    int symbolIdx = 0;
+    int numIdx = 0;
+    Card *newCardArr[7];
+    int currIdx = 0;
+    // 找目前cardArr中的第一張符號牌
+    for (int i = 0; i < 7; i++)
+    {
+        if (this->cardArr[i]->isSymbolCard() == true)
+        {
+            symbolIdx = i;
+            break;
+        }
+    }
+
+    // 找目前cardArr中的第一張數字牌
+    for (int i = 0; i < 7; i++)
+    {
+        if (this->cardArr[i]->isSymbolCard() == false)
+        {
+            numIdx = i;
+            break;
+        }
+    }
+    // 如果符號排在數字前面就互換位置，放進新陣列
+    newCardArr[currIdx] = this->cardArr[numIdx];
+    currIdx++;
+    newCardArr[currIdx] = this->cardArr[symbolIdx];
+    currIdx++;
+
+    bool symbolFlag = true, numFlag = true;
+    while (symbolFlag || numFlag)
+    {
+        if (numFlag)
+            numFlag = _findNextIdx(false, numIdx);
+        if (symbolFlag)
+            symbolFlag = _findNextIdx(true, symbolIdx);
+        if (numFlag == true && symbolFlag == true)
+        {
+            newCardArr[currIdx] = this->cardArr[numIdx];
+            currIdx++;
+            newCardArr[currIdx] = this->cardArr[symbolIdx];
+            currIdx++;
+        }
+        else if (numFlag == true && symbolFlag == false)
+        {
+            newCardArr[currIdx] = this->cardArr[numIdx];
+            currIdx++;
+        }
+    }
+
+    for (int i = 0; i < 7; i++)
+        this->cardArr[i] = newCardArr[i];
+    // 豬大哥會把數字由小到大排列
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3 - i - 1; j++)
+        {
+            if (stoi(this->cardArr[2 * j]->getValue()) - stoi(this->cardArr[2 * j + 2]->getValue()) < 0)
+                swapPtr(this->cardArr[2 * j], this->cardArr[2 * j + 2]);
+        }
+    }
+}
+
+void JuDaKo::rez()
+{
+    int ran = rand() % 2;
+    if(ran == 1)
+    {
+        cout << "豬大哥  " << this->name << "  復活成功，又多得到了1個籌碼" << endl;
+        this->totalChips = 1;
+        this->isAlive = true;
+    }
+    else
+    {
+        this->isAlive = false;
+    }
+}
+
+int JuDaKo::biddingChips(const int currChip, const int limitChip)
+{
+    return currChip;   
+}
+
+
+void JuDaKo::throwCard(Card *c)
+{
+    int ran = rand() % 2;
+    this->cardArr[ran] = c;
+}
+
+void JuDaKo::printWinner()
+{
+    cout << "豬...大..哥....獲勝" << endl;
+}
+
 class Game
 {
 private:
@@ -1329,6 +1478,7 @@ public:
     bool endRound();
     void printShortRule();
 };
+
 
 Game::Game()
 {
@@ -1754,7 +1904,7 @@ void Game::gameStart(Player &pyptr, const int playerNum)
     // 隨機加入不同角色的電腦玩家
     for (int i = 1; i < playerNum; i++)
     {
-        ran = rand() % 3;
+        ran = rand() % 4;
         if (ran == 0)
         {
             Drunkard *d = new Drunkard(nameList.back());
@@ -1765,14 +1915,18 @@ void Game::gameStart(Player &pyptr, const int playerNum)
             Rich *r = new Rich(nameList.back());
             this->playerList.push_back(r);
         }
-        else
+        else if (ran == 2)
         {
             Math *m = new Math(nameList.back());
             this->playerList.push_back(m);
         }
+        else
+        {
+            JuDaKo *j = new JuDaKo(nameList.back());
+            this->playerList.push_back(j);
+        }
         nameList.pop_back();
     }
-    nameList.clear();
     // 重新分配玩家順序
     for (int i = 0; i < 2 * this->playerList.size(); i++)
     {
@@ -1813,7 +1967,10 @@ void Game::calChips()
                 cout << setw(10);
                 playerListPerRnd[i]->printName();
                 cout << " 籌碼數量歸零，退出遊戲。" << endl;
-                this->playerListPerRnd[i]->isAlive = false;
+                if(playerListPerRnd[i]->type == "JuDaKo")
+                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez();
+                else
+                    this->playerListPerRnd[i]->isAlive = false;
             }
         }
         cout << "您的籌碼數量歸零 GAME OVER....." << endl; // ?
@@ -1835,7 +1992,10 @@ void Game::calChips()
                 cout << setw(10);
                 playerListPerRnd[i]->printName();
                 cout << " 籌碼數量歸零，退出遊戲。" << endl;
-                this->playerListPerRnd[i]->isAlive = false;
+                if(playerListPerRnd[i]->type == "JuDaKo")
+                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez();
+                else
+                    this->playerListPerRnd[i]->isAlive = false;
             }
         }
     }
