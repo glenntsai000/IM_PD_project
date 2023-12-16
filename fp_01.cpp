@@ -1304,7 +1304,7 @@ public:
     int biddingChips(const int currChip, const int limitChip);
     void printWinner();
     void throwCard(Card *c);
-    void rez();
+    void rez(int leastChips);
 };
 
 void JuDaKo::swapPtr(Card *&p1, Card *&p2)
@@ -1408,13 +1408,13 @@ void JuDaKo::sortCard()
     }
 }
 
-void JuDaKo::rez()
+void JuDaKo::rez(int leastChips)
 {
     int ran = rand() % 2;
     if(ran == 1)
     {
-        cout << "豬大哥  " << this->name << "  復活成功，又多得到了1個籌碼" << endl;
-        this->totalChips = 1;
+        cout << "豬大哥  " << this->name << "  復活成功，又多得到了" << leastChips << "個籌碼" << endl;
+        this->totalChips = leastChips;
         this->isAlive = true;
     }
     else
@@ -1425,7 +1425,14 @@ void JuDaKo::rez()
 
 int JuDaKo::biddingChips(const int currChip, const int limitChip)
 {
-    return currChip;   
+    int diff = currChip - this->chipBiddenThisRound;
+    if(diff > this->totalChips){
+        //如果currChip > 豬大哥目前有得籌碼數就棄牌
+        return -1;
+    }
+    else{
+        return diff;
+    }
 }
 
 
@@ -1495,12 +1502,15 @@ void Game::addPlayer(Player &pyptr)
 {
     this->playerList.push_back(&pyptr);
 }
+
 void Game::initPlayerRnd()
 {
     this->playerListPerRnd.clear();
-    this->playerListPerRnd = this->playerList;
+    for(int i = 0; i < this->playerList.size(); i++)
+        this->playerListPerRnd.push_back(this->playerList[i]);
     this->playerFold = false;
 }
+
 void Game::initCardList()
 {
     // 清空卡池
@@ -1718,7 +1728,6 @@ void Game::biddingPerRound(int rnd)
         }
         currChip = 1;
     }
-
     else // 第一次下注與第二次下注
     {
         cout << "\n";
@@ -1742,11 +1751,12 @@ void Game::biddingPerRound(int rnd)
                     //     continue; // 已棄牌
                     // cout << this->playerListPerRnd[i]->name << " 已下注數量: " <<
                     // this->playerListPerRnd[i]->chipBiddenThisRound << endl; 加注
-                    if(this->playerListPerRnd[i]->isFoldThisRound)
-                        continue;
+                    //if(this->playerListPerRnd[i]->isFoldThisRound)
+                    //    continue;
                     int pyBidNum = 0;
-
-                    if (startBid != true && currChip == this->playerListPerRnd[i]->chipBiddenThisRound) // 此輪非第一次加注，但加注總數量與上次相同
+                    if(this->playerListPerRnd[i]->chipBiddenThisRound == leastChips)
+                        continue;
+                    if (startBid == true && currChip == this->playerListPerRnd[i]->chipBiddenThisRound) // 此輪非第一次加注，但加注總數量與上次相同
                         pyBidNum = 0;
                     else
                     {
@@ -1764,9 +1774,9 @@ void Game::biddingPerRound(int rnd)
                         cout << setw(10) << left;
                         cout << this->playerListPerRnd[i]->name << "放棄這回合" << endl;
                         this->playerListPerRnd[i]->isFoldThisRound = true;
-                        if (this->playerList[i]->isPlayer == true)
+                        if (this->playerListPerRnd[i]->isPlayer == true)
                             this->playerFold = true;
-                        //continue;
+                        continue;
                     }
 
                     // remove from playerlist this rnd
@@ -1799,8 +1809,6 @@ void Game::biddingPerRound(int rnd)
                     }
                 }
 
-                //cout << endl;
-
                 // for (int i = 0; i < playerListPerRnd.size(); i++)
                 // {
                 //     if (this->playerListPerRnd[i]->isFoldThisRound == true)
@@ -1819,7 +1827,6 @@ void Game::biddingPerRound(int rnd)
                 }
                 if (cntSame == playerListPerRnd.size())
                     bidEnd = true;
-                //cout << endl;
             }
         }
         cout << "\n本輪下注結束" << endl;
@@ -1939,17 +1946,17 @@ void Game::gameStart(Player &pyptr, const int playerNum)
 void Game::calChips()
 {
     // find player's position
-    int playerPos = 0;
-    for (int i = 0; i < this->playerListPerRnd.size(); i++)
-    {
-        if (this->playerListPerRnd[i]->isPlayer == true)
-        {
-            playerPos = i;
-            break;
-        }
-    }
-
-    cout << this->playerListPerRnd[playerPos]->name << "目前籌碼數量：" << playerListPerRnd[playerPos]->totalChips << endl;
+    //int playerPos = 0;
+    //for (int i = 0; i < this->playerListPerRnd.size(); i++)
+    //{
+    //    if (this->playerListPerRnd[i]->isPlayer == true)
+    //    {
+    //        playerPos = i;
+    //        break;
+    //    }
+    //}
+    /*
+    //cout << this->playerListPerRnd[playerPos]->name << "目前籌碼數量：" << playerListPerRnd[playerPos]->totalChips << endl;
     if (playerListPerRnd[playerPos]->totalChips == 0)
     {
         for (int i = 1; i < this->playerListPerRnd.size(); i++)
@@ -1961,19 +1968,18 @@ void Game::calChips()
         }
         for (int i = 0; i < this->playerListPerRnd.size(); i++)
         {
-            if (playerListPerRnd[i]->totalChips <= 0)
+            if (playerListPerRnd[i]->totalChips == 0)
             {
                 cout << "玩家";
                 cout << setw(10);
                 playerListPerRnd[i]->printName();
                 cout << " 籌碼數量歸零，退出遊戲。" << endl;
                 if(playerListPerRnd[i]->type == "JuDaKo")
-                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez();
+                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
                 else
                     this->playerListPerRnd[i]->isAlive = false;
             }
         }
-        cout << "您的籌碼數量歸零 GAME OVER....." << endl; // ?
     }
     else
     {
@@ -1993,12 +1999,40 @@ void Game::calChips()
                 playerListPerRnd[i]->printName();
                 cout << " 籌碼數量歸零，退出遊戲。" << endl;
                 if(playerListPerRnd[i]->type == "JuDaKo")
-                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez();
-                else
+                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
+                else{
+                    if(this->playerListPerRnd[i]->isPlayer == true)
+                        this->playerAlive = false;
                     this->playerListPerRnd[i]->isAlive = false;
+                }
             }
         }
     }
+    */
+    for (int i = 0; i < this->playerListPerRnd.size(); i++)
+        {
+            cout << setw(10) << left;
+            playerListPerRnd[i]->printName();
+            cout << right;
+            cout << ": " << playerListPerRnd[i]->totalChips << endl;
+        }
+        for (int i = 0; i < this->playerListPerRnd.size(); i++)
+        {
+            if (playerListPerRnd[i]->totalChips <= 0)
+            {
+                cout << "玩家";
+                cout << setw(10);
+                playerListPerRnd[i]->printName();
+                cout << " 籌碼數量歸零，退出遊戲。" << endl;
+                if(playerListPerRnd[i]->type == "JuDaKo")
+                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
+                else{
+                    if(this->playerListPerRnd[i]->isPlayer == true)
+                        this->playerAlive = false;
+                    this->playerListPerRnd[i]->isAlive = false;
+                }
+            }
+        }
 }
 
 void Game::printResult()
@@ -2079,8 +2113,8 @@ void Game::printResult()
     {
         if ((bigWinner != nullptr and bigWinner->isPlayer == true) or (smallWinner != nullptr and smallWinner->isPlayer == true))
             cout << "恭喜你贏了這一回合！" << endl;
-        else
-            cout << "下一回合再接再厲qq" << endl;
+        //else
+        //    cout << "下一回合再接再厲qq" << endl;
     }
     // 輸出結果
     if (bigWinner != nullptr)
@@ -2201,43 +2235,27 @@ void Game::printFinalResult()
 
 void Game::kickoutPlayer()
 {
-    int idx = 0;
-    while (idx < this->playerList.size())
-    {
-        if (this->playerList[idx]->isAlive == false)
-        {
-            for (int j = idx; j < this->playerList.size() - 1; j++)
-            {
-                _swapPlayer(j, j + 1);
-            }
-
-            if (this->playerList.back()->isPlayer == true)
-                playerAlive = false;
-
-            this->playerList.pop_back();
-        }
-        else
-        {
-            idx++;
+    for(int i = 0;  i < this->playerList.size(); i++){
+        if(this->playerList[i]->isAlive == false){
+            this->playerList.erase(this->playerList.begin() + i);
+            i--;
         }
     }
 }
 
 bool Game::endRound()
 {
-    if (this->playerList.size() == 1 || this->playerAlive == false)
+    if (this->playerList.size() == 1)
     {
         return false;
     }
-    this->playerFold = false;
     for (int i = 0; i < this->playerList.size(); i++)
     {
-        for (int j = 0; j < cardInHand; j++)
-        {
-            this->playerList[i]->cardArr.pop_back();
-        }
+        this->playerList[i]->cardArr.clear();
         this->playerList[i]->chipBiddenThisRound = 0;
+        this->playerList[i]->isFoldThisRound = false;
     }
+    this->playerFold == false;
     return true;
 }
 
@@ -2299,7 +2317,7 @@ int main()
     cout << " 歡迎加入遊戲！" << endl;
     cout << "\n";
     Game G;
-    G.printShortRule();
+    //G.printShortRule();
     G.gameStart(py, playerNum);
     bool continueGame = true;
 
