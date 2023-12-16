@@ -410,11 +410,13 @@ void Character::printHandCard()
             // Public card
             this->cardArr[i]->printCard();
             cout << " ";
+            this_thread::sleep_for(chrono::milliseconds(50));
         }
         else
         {
             // Hidden card : |?|
             cout << "|?| ";
+            this_thread::sleep_for(chrono::milliseconds(50));
         }
     }
     cout << endl;
@@ -640,6 +642,7 @@ void Player::printHandCard()
     {
         this->cardArr[i]->printCard();
         cout << " ";
+        this_thread::sleep_for(chrono::milliseconds(50));
     }
     cout << endl;
     cout << setw(15) << "Public : ";
@@ -649,6 +652,7 @@ void Player::printHandCard()
         {
             this->cardArr[i]->printCard();
             cout << " ";
+            this_thread::sleep_for(chrono::milliseconds(50));
         }
     }
     cout << endl;
@@ -659,6 +663,7 @@ void Player::printHandCard()
         {
             this->cardArr[i]->printCard();
             cout << " ";
+            this_thread::sleep_for(chrono::milliseconds(50));
         }
     }
     cout << endl;
@@ -1110,15 +1115,23 @@ int Math::biddingChips(const int currChip, const int limitChip)
             double result = this->calCard(); // 先取optimal solution(要先呼叫過sortCard才能呼叫biddingChips)
 
             bid = 0;
-            double difference = 0;
-            double target = 0;
+            double difference1 = abs(result - 20); // 和20的差距
+            double difference2 = abs(result - 1);  // 和1的差距
+            double difference;
+            double target;
 
-            if (this->bigOrSmall == true)
+            if (difference1 <= difference2){
+                // big
                 target = 20;
-            else
+                this->bigOrSmall = true;
+                difference = difference1;
+            }
+            else{
+                // small
                 target = 1;
-
-            difference = abs(result - target); // 計算跟target的差距
+                this->bigOrSmall = false;
+                difference = difference2;
+            }
 
             if (difference <= 1)
                 bid = limitChip; // difference < 1 就 all in
@@ -1462,6 +1475,7 @@ class Landlord : public Character
 private:
     int landNum;
     int landPrice;
+    string location;
     bool _findNextIdx(bool isSymbol, int &idx);
 public:
     Landlord(const string n); // constructor
@@ -1501,6 +1515,9 @@ Landlord::Landlord(const string n) : Character(n, false, "Landlord")
 {
     this->landNum = rand() % 5 + 1;
     this->landPrice = rand() % 5 + 2;
+    vector<string> locationList = {"信義", "松山", "南港" , "大安", "文山" , "中正", "中山", "大同", "萬華", "士林", "北投", "內湖"};
+    this->location = locationList[rand() % 12];
+    locationList.clear();
 }
 
 void Landlord::sortCard()
@@ -1576,12 +1593,12 @@ void Landlord::sortCard()
 
 int Landlord::biddingChips(const int currChip, const int limitChip){
     int diff = currChip - this->chipBiddenThisRound;
-    if(diff <= this->totalChips / 2){
-        int bid = this->totalChips / 2;
+    if(diff <= limitChip / 2){
+        int bid = limitChip / 2;
         this->chipBiddenThisRound += bid;
         return bid;
     }
-    else if(diff > this->totalChips / 2){
+    else if(diff > limitChip / 2){
         this->chipBiddenThisRound += diff;
         return diff;
     }
@@ -1621,10 +1638,10 @@ void Landlord::sellLand()
     if(this->landNum > 0){
         this->landNum--;
         this->totalChips += this->landPrice;
-        cout << GREEN << "信義區地主" << this->name << "賣掉1筆信義區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landNum << "筆信義區土地" << NC << endl;
+        cout << GREEN << this->location << "區地主" << this->name << "賣掉1筆" << this->location << "區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landNum << "筆" << this->location<< "區土地" << NC << endl;
     }
     else{
-        cout << RED << "(前)信義區地主" << this->name << "出局" << NC << endl;
+        cout << RED << "(前)" << this->location << "區地主" << this->name << "出局" << NC << endl;
     }
 }
 
@@ -2082,7 +2099,7 @@ void Game::printPlayersCard()
     // cout << "Other Player's Cards" << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
     {
-        this_thread::sleep_for(chrono::milliseconds(500));
+        this_thread::sleep_for(chrono::milliseconds(100));
         if (this->playerListPerRnd[i]->isPlayer == false)
             this->playerListPerRnd[i]->printHandCard();
     }
@@ -2126,10 +2143,10 @@ void Game::biddingPerRound(int rnd)
         chipsInRound = 0;
         currChip = 0;
         leastChips = 1000; // 這回合擁有最少籌碼的人的籌碼數 為本回合下注的最高限制數量
-        for (int i = 0; i < playerListPerRnd.size(); i++)
+        for (int i = 0; i < playerList.size(); i++)
         {
-            if (this->playerListPerRnd[i]->totalChips < leastChips)
-                leastChips = this->playerListPerRnd[i]->totalChips;
+            if (this->playerList[i]->totalChips < leastChips)
+                leastChips = this->playerList[i]->totalChips;
         }
 
         // 每個人基本下注1
@@ -2187,7 +2204,6 @@ void Game::biddingPerRound(int rnd)
                     {
                         cout << setw(10) << left;
                         cout << this->playerListPerRnd[i]->name << "放棄這回合" << endl;
-                        this_thread::sleep_for(chrono::milliseconds(500));
                         this->playerListPerRnd[i]->isFoldThisRound = true;
                         if (this->playerListPerRnd[i]->isPlayer == true)
                             this->playerFold = true;
@@ -2283,19 +2299,16 @@ void Game::biddingPrint()
 void Game::printPlayerList()
 {
     cout << "=================Players List=================" << endl;
-    cout << setw(9)<< " " <<setw(12) << left << "NAME"
-         << setw(12) << "CHARACTER" 
-         << setw(5) << "CHIPS" << endl;
+    cout << setw(13) << left << "NAME" << "|" << setw(13) << "  CHARACTER  " << "|" << setw(18) << "       CHIPS"<< endl;
     cout << "----------------------------------------------" << endl;
     for (int i = 0; i < playerList.size(); i++)
     {
         if (this->playerList[i]->isPlayer == true)
             cout << BOLD;
-        cout << setw(9) << " " << setw(12);
-        this->playerList[i]->printName();
-        cout << setw(12) << this->playerList[i]->type;
-        cout << setw(5) << this->playerList[i]->getTotalChips();
-        cout << NC << endl;
+        cout << setw(13) << left << this->playerList[i]->name << "|";
+        cout << setw(11) << right << this->playerList[i]->type << "  |";
+        cout << setw(12) << this->playerList[i]->getTotalChips();
+        cout << NC << left << endl;
     }
     cout << "=============================================" << endl;
 }
@@ -2434,13 +2447,13 @@ void Game::calChips()
         }
     }
     */
-    cout << "|" << setw(12) << left << "NAME" << "|" << setw(13) << "  CHARACTER  " << "|" <<setw(18) << "   REMAIN CHIPS"<< endl;
+    cout << setw(13) << left << "NAME" << "|" << setw(13) << "  CHARACTER  " << "|" <<setw(18) << "   REMAIN CHIPS"<< endl;
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
     {
-        cout << "|" << setw(12) << left;
+        cout << setw(13) << left;
         playerListPerRnd[i]->printName();
-        cout << "|" << setw(13) << this->playerListPerRnd[i]->type;
+        cout << "|" << "  " << right << setw(9) << this->playerListPerRnd[i]->type << "  ";
         cout << "|" << setw(15) << right << playerListPerRnd[i]->totalChips << left << endl;
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
