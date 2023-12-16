@@ -1494,8 +1494,8 @@ bool Landlord::_findNextIdx(bool isSymbol, int &idx)
 
 Landlord::Landlord(const string n) : Character(n, false, "Landlord")
 {
-    this->landNum = rand() % 3 + 1;
-    this->landPrice = rand() % 5 + 1;
+    this->landNum = rand() % 5 + 1;
+    this->landPrice = rand() % 5 + 2;
 }
 
 void Landlord::sortCard()
@@ -2307,9 +2307,9 @@ void Game::printResult()
     // 輸出結果
     if (bigWinner != nullptr)
     {
-        cout << "賭大的贏家是： ";
+        cout << "賭大的贏家是：";
         cout << setw(10) << bigWinner->name;
-        cout << " 數學式結果為：" << setw(10) << right <<fixed << setprecision(6) << playerValue[bigWinneridx] << left << endl;
+        cout << " 數學式結果為：" << setw(7) << right << fixed << setprecision(3) << playerValue[bigWinneridx] << left << endl;
     }
     else
     {
@@ -2318,9 +2318,9 @@ void Game::printResult()
     this_thread::sleep_for(chrono::milliseconds(500));
     if (smallWinner != nullptr)
     {
-        cout << "賭小的贏家是： ";
+        cout << "賭小的贏家是：";
         cout << setw(10) << smallWinner->name;
-        cout << " 數學式結果為：" <<setw(10) << right << fixed << setprecision(6) << playerValue[smallWinneridx] << left << endl;
+        cout << " 數學式結果為：" <<setw(7) << right << fixed << setprecision(3) << playerValue[smallWinneridx] << left << endl;
     }
     else
     {
@@ -2329,7 +2329,7 @@ void Game::printResult()
     this_thread::sleep_for(chrono::milliseconds(500));
     // 輸出其餘玩家的名稱和數學式結果
     if(this->playerListPerRnd.size() > 2 || (bigWinner == nullptr || smallWinner == nullptr))
-        cout << "其餘玩家： " << endl;
+        cout << "其餘玩家：" << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
     {
         if ((playerListPerRnd[i] != bigWinner) and (playerListPerRnd[i] != smallWinner))
@@ -2341,7 +2341,7 @@ void Game::printResult()
                 cout << " 賭大 ";
             else
                 cout << " 賭小 ";
-            cout << " 數學式結果為：" << setw(10) << right << fixed << setprecision(6) << playerValue[i] << left << endl;
+            cout << " 數學式結果為：" << setw(7) << right << fixed << setprecision(3) << playerValue[i] << left << endl;
            this_thread::sleep_for(chrono::milliseconds(500));
         }
     }
