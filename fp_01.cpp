@@ -1628,6 +1628,239 @@ void Landlord::sellLand()
     }
 }
 
+class AbsoluteLoser : public Character
+{
+private:
+public:
+    AbsoluteLoser(const std::string& n) : Character(n, false, "AbsoluteLoser") {};
+    ~AbsoluteLoser() {};
+    void sortCard();
+    int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼(要先呼叫過sortCard才能呼叫biddingChips)
+    void printWinner();
+    void throwCard(Card* c);
+};
+
+void AbsoluteLoser::throwCard(Card* c)
+{
+    this->cardArr[0] = c; // 把加號丟掉
+}
+
+int AbsoluteLoser::biddingChips(const int currChip, const int limitChip)
+{
+    int bid = 0;
+    // Modify by 蔡宗耘
+    // 先複製this->cardArr到tempArr
+    // 然後sort this->cardArr
+    // 計算結果下注
+    // 下注後將tempArr複製回this->cardArr，讓cardArr回復原來的順序
+    vector<Card*> tempArr;
+
+    for (int i = 0; i < 7; i++)
+    {
+        tempArr.push_back(cardArr[i]);
+    }
+    // modify end
+    if (this->totalChips > 0) // 還有chips
+    {
+        if (this->cardArr.size() < 7)
+        {
+            bid = limitChip; // all in
+            this->chipBiddenThisRound += bid;
+        }
+        else
+        {
+            // modify by 蔡宗耘
+            this->sortCard();
+            // modify end
+            double result = this->calCard(); // 先取optimal solution(要先呼叫過sortCard才能呼叫biddingChips)
+
+            bid = 0;
+            double difference = 0;
+            double target = 0;
+
+            if (this->bigOrSmall == true)
+                target = 20;
+            else
+                target = 1;
+
+            difference = abs(result - target); // 計算跟target的差距
+
+            if (difference > 20)
+                bid = limitChip; // difference > 20 就 all in
+            else if (difference > 3 and difference <= 20)
+                bid = ((currChip - chipBiddenThisRound) + limitChip) / 2; // 3 <  difference <= 20 就取中間
+            else if (difference > 1 and difference <= 3)
+                bid = currChip - chipBiddenThisRound; // 1 <  difference <= 3 就下最少
+            else
+            {
+                this->isFoldThisRound = true; // difference <=1 就棄牌
+                bid = -1;                     // fold 回傳 -1
+            }
+
+            // 沒棄牌
+            if (this->isFoldThisRound == false)
+                this->chipBiddenThisRound += bid;
+        }
+    }
+    else
+    {
+        this->isFoldThisRound = true; // difference > 10 就棄牌
+        bid = -1;                     // 棄牌回傳 -1
+    }
+    // modify by 蔡宗耘
+    for (int i = 0; i < 7; i++)
+    {
+        this->cardArr[i] = tempArr[i];
+    }
+    // modify end
+    return bid;
+}
+
+// AbsoluteLoser的出牌演算法：找出worst solution
+void AbsoluteLoser::sortCard()
+{
+    vector<Card*> numberCards; // 數字卡牌
+    vector<Card*> symbolCards; // 符號卡牌
+
+    // 將數字卡片和符號卡片分別放入對應的向量中
+    for (int i = 0; i < 7; i++)
+    {
+        if (cardArr[i] != nullptr)
+        {
+            if (NumberCard* numCard = dynamic_cast<NumberCard*>(cardArr[i]))
+            {
+                numberCards.push_back(numCard);
+            }
+            else if (SymbolCard* symCard = dynamic_cast<SymbolCard*>(cardArr[i]))
+            {
+                symbolCards.push_back(symCard);
+            }
+        }
+    }
+
+    // 儲存最大差距的絕對值和對應的結果
+    double maxDifference = numeric_limits<double>::lowest();
+    double maxDifference1 = numeric_limits<double>::lowest();
+    double maxDifference20 = numeric_limits<double>::lowest();
+    vector<Card*> updatedCardArr; // 暫存更新後的卡牌排列
+
+    // 窮舉所有可能的排列組合
+    // 遍歷 4! * 3! = 144種可能性，找出worst solution
+    do
+    {
+        do
+        {
+            bool invalid = false; // 判斷是不是除以0
+            int firstValue = stoi(numberCards[0]->getValue());
+            size_t symbolIndex = 0;
+
+            // 用來儲存中間結果的容器
+            vector<double> intermediateResults;
+            intermediateResults.push_back(firstValue);
+
+            for (size_t i = 1; i < numberCards.size(); i++)
+            {
+                // 根據符號卡片運算
+                if (symbolIndex < symbolCards.size())
+                {
+                    string symbol = symbolCards[symbolIndex]->getValue();
+                    if (symbol == "*" or symbol == "/")
+                    {
+                        // 如果是乘法或除法，先將結果存入中間結果容器
+                        int operand = stoi(numberCards[i]->getValue());
+                        if (symbol == "*")
+                        {
+                            intermediateResults.back() *= operand;
+                        }
+                        else if (symbol == "/")
+                        {
+                            if (operand != 0)
+                            {
+                                intermediateResults.back() /= operand;
+                            }
+                            // 處理除以零的情況
+                            else
+                            {
+                                invalid = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // 如果是加法或減法，將當前數字與中間結果容器的最後一個元素進行運算
+                        int operand = stoi(numberCards[i]->getValue());
+                        if (symbol == "+")
+                        {
+                            intermediateResults.push_back(operand);
+                        }
+                        else if (symbol == "-")
+                        {
+                            intermediateResults.push_back(-operand);
+                        }
+                    }
+
+                    // 移至下一個符號
+                    symbolIndex++;
+                }
+            }
+
+            // 除以零的情況
+            if (invalid == true)
+                continue;
+
+            // 將中間結果容器中的所有數字相加得到最終結果
+            double currentResult = 0;
+            for (double tempresult : intermediateResults)
+            {
+                currentResult += tempresult;
+            }
+
+            // 計算差距的絕對值
+            double currentDifference1 = abs(currentResult - 1.0);
+            double currentDifference20 = abs(currentResult - 20.0);
+
+            // 更新最小差距的絕對值和對應的結果
+            if (currentDifference1 > maxDifference or currentDifference20 > maxDifference)
+            {
+                maxDifference = max(currentDifference1, currentDifference20);
+                maxDifference1 = currentDifference1;
+                maxDifference20 = currentDifference20;
+
+
+                // 將數字卡片和符號卡片放入 updatedCardArr
+                symbolIndex = 0;
+                updatedCardArr.clear(); // 清空先前的內容
+                for (size_t i = 0; i < numberCards.size(); i++)
+                {
+                    updatedCardArr.push_back(numberCards[i]);
+                    if (symbolIndex < symbolCards.size())
+                    {
+                        updatedCardArr.push_back(symbolCards[symbolIndex]);
+                        symbolIndex++;
+                    }
+                }
+            }
+        } while (next_permutation(numberCards.begin(), numberCards.end())); // 產生所有數字卡牌的排列組合
+    } while (next_permutation(symbolCards.begin(), symbolCards.end()));     // 產生所有符號卡牌的排列組合
+
+    if (maxDifference20 > maxDifference1)
+        this->bigOrSmall = true;
+
+
+    // 複製更新後的卡牌陣列回原始 cardArr
+    for (size_t i = 0; i < 7; i++)
+    {
+        cardArr[i] = updatedCardArr[i]; // 複製新的卡牌
+    }
+}
+
+void AbsoluteLoser::printWinner()
+{
+    cout << "你輸了..." << '\n'
+        << "最終贏家為： " << this->name << endl;
+}
+
 class Game
 {
 private:
@@ -2093,7 +2326,7 @@ void Game::gameStart(Player &pyptr, const int playerNum)
     // 隨機加入不同角色的電腦玩家
     for (int i = 1; i < playerNum; i++)
     {
-        ran = rand() % 5;
+        ran = rand() % 6;
         if (ran == 0)
         {
             Drunkard *d = new Drunkard(nameList.back());
@@ -2111,13 +2344,18 @@ void Game::gameStart(Player &pyptr, const int playerNum)
         }
         else if (ran == 3)
         {
-            JuDaKo *j = new JuDaKo(nameList.back());
-            this->playerList.push_back(j);
+            JuDaKo *l = new JuDaKo(nameList.back());
+            this->playerList.push_back(l);
         }
         else if (ran == 4)
         {
             Landlord *j = new Landlord(nameList.back());
             this->playerList.push_back(j);
+        }
+        else
+        {
+            AbsoluteLoser* a = new AbsoluteLoser(nameList.back());
+            this->playerList.push_back(a);
         }
         nameList.pop_back();
     }
