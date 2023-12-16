@@ -1467,6 +1467,7 @@ class Landlord : public Character
 private:
     int landNum;
     int landPrice;
+    string location;
     bool _findNextIdx(bool isSymbol, int &idx);
 public:
     Landlord(const string n); // constructor
@@ -1506,6 +1507,9 @@ Landlord::Landlord(const string n) : Character(n, false, "Landlord")
 {
     this->landNum = rand() % 5 + 1;
     this->landPrice = rand() % 5 + 2;
+    vector<string> locationList = {"信義", "松山", "南港" , "大安", "文山" , "中正", "中山", "大同", "萬華", "士林", "北投", "內湖"};
+    this->location = locationList[rand() % 12];
+    locationList.clear();
 }
 
 void Landlord::sortCard()
@@ -1626,10 +1630,10 @@ void Landlord::sellLand()
     if(this->landNum > 0){
         this->landNum--;
         this->totalChips += this->landPrice;
-        cout << GREEN << "信義區地主" << this->name << "賣掉1筆信義區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landNum << "筆信義區土地" << NC << endl;
+        cout << GREEN << this->location << "區地主" << this->name << "賣掉1筆" << this->location << "區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landNum << "筆" << this->location<< "區土地" << NC << endl;
     }
     else{
-        cout << RED << "(前)信義區地主" << this->name << "出局" << NC << endl;
+        cout << RED << "(前)" << this->location << "區地主" << this->name << "出局" << NC << endl;
     }
 }
 
@@ -2523,7 +2527,7 @@ int main()
     G.gameStart(py, playerNum);
     bool continueGame = true;
 
-    for (int i = 1; i <= playerNum; i++)
+    for (int i = 1; i <= 50; i++)
     {
         cout << setw(19) << setfill('-') << ""
              << BOLD << "ROUND" << setw(3) << right << setfill(' ') << i << setfill('-') << left << NC << setw(19) << "" << setfill(' ') << endl;
