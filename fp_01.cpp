@@ -861,6 +861,7 @@ void Drunkard::sortCard()
 int Drunkard::biddingChips(const int currChip, const int limitChip)
 {
     int diff = currChip - this->chipBiddenThisRound;
+    this->bigOrSmall = rand() % 2;
     if (this->totalChips == 0)
     {
         return -1; // 棄牌?
@@ -1433,6 +1434,7 @@ void JuDaKo::rez(int leastChips)
 
 int JuDaKo::biddingChips(const int currChip, const int limitChip)
 {
+    this->bigOrSmall = rand() % 2;
     int diff = currChip - this->chipBiddenThisRound;
     if(diff > this->totalChips){
         //如果currChip > 豬大哥目前有得籌碼數就棄牌
