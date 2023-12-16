@@ -1475,6 +1475,7 @@ class Landlord : public Character
 private:
     int landNum;
     int landPrice;
+    bool isSmart;
     string location;
     bool _findNextIdx(bool isSymbol, int &idx);
 public:
@@ -1515,6 +1516,7 @@ Landlord::Landlord(const string n) : Character(n, false, "Landlord")
 {
     this->landNum = rand() % 5 + 1;
     this->landPrice = rand() % 5 + 2;
+    this->isSmart = rand() % 2;
     vector<string> locationList = {"信義", "松山", "南港" , "大安", "文山" , "中正", "中山", "大同", "萬華", "士林", "北投", "內湖"};
     this->location = locationList[rand() % 12];
     locationList.clear();
@@ -1522,73 +1524,212 @@ Landlord::Landlord(const string n) : Character(n, false, "Landlord")
 
 void Landlord::sortCard()
 {
-    int symbolIdx = 0;
-    int numIdx = 0;
-    Card *newCardArr[cardInHand];
-    int currIdx = 0;
-    // 找目前cardArr中的第一張符號牌
-    for (int i = 0; i < cardInHand; i++)
-    {
-        if (this->cardArr[i]->isSymbolCard() == true)
-        {
-            symbolIdx = i;
-            break;
-        }
-    }
+    if(this->isSmart == true){
+        vector<Card *> numberCards; // 數字卡牌
+        vector<Card *> symbolCards; // 符號卡牌
 
-    // 找目前cardArr中的第一張數字牌
-    for (int i = 0; i < cardInHand; i++)
-    {
-        if (this->cardArr[i]->isSymbolCard() == false)
+        // 將數字卡片和符號卡片分別放入對應的向量中
+        for (int i = 0; i < 7; i++)
         {
-            numIdx = i;
-            break;
+            if (cardArr[i] != nullptr)
+            {
+                if (NumberCard *numCard = dynamic_cast<NumberCard *>(cardArr[i]))
+                {
+                    numberCards.push_back(numCard);
+                }
+                else if (SymbolCard *symCard = dynamic_cast<SymbolCard *>(cardArr[i]))
+                {
+                    symbolCards.push_back(symCard);
+                }
+            }
         }
-    }
-    // 如果符號排在數字前面就互換位置，放進新陣列
-    newCardArr[currIdx] = this->cardArr[numIdx];
-    currIdx++;
-    newCardArr[currIdx] = this->cardArr[symbolIdx];
-    currIdx++;
 
-    bool symbolFlag = true, numFlag = true;
-    while (symbolFlag || numFlag)
-    {
-        if (numFlag)
-            numFlag = _findNextIdx(false, numIdx);
-        if (symbolFlag)
-            symbolFlag = _findNextIdx(true, symbolIdx);
-        if (numFlag == true && symbolFlag == true)
-        {
-            newCardArr[currIdx] = this->cardArr[numIdx];
-            currIdx++;
-            newCardArr[currIdx] = this->cardArr[symbolIdx];
-            currIdx++;
-        }
-        else if (numFlag == true && symbolFlag == false)
-        {
-            newCardArr[currIdx] = this->cardArr[numIdx];
-            currIdx++;
-        }
-    }
+        // 儲存最小差距的絕對值和對應的結果
+        double minDifference = numeric_limits<double>::infinity();
+        double minDifference1 = numeric_limits<double>::infinity();
+        double minDifference20 = numeric_limits<double>::infinity();
+        vector<Card *> updatedCardArr; // 暫存更新後的卡牌排列
 
-    for (int i = 0; i < 10; i++)
-    {
-        int idx1 = 2 * (rand() % 4);
-        int idx2 = 2 * (rand() % 4);
-        swapCard(newCardArr[idx1], newCardArr[idx2]);
-    }
-
-    for (int i = 0; i < cardInHand; i += 2)
-    {
-        if (newCardArr[i]->getValue().compare("/") == 0)
+        // 窮舉所有可能的排列組合
+        // 遍歷 4! * 3! = 144種可能性，找出optimal solution
+        do
         {
-            if (newCardArr[i + 1]->getValue().compare("0") == 0)
-                swapCard(newCardArr[i - 1], newCardArr[i + 1]);
+            do
+            {
+                bool invalid = false; // 判斷是不是除以0
+                int firstValue = stoi(numberCards[0]->getValue());
+                size_t symbolIndex = 0;
+
+                // 用來儲存中間結果的容器
+                vector<double> intermediateResults;
+                intermediateResults.push_back(firstValue);
+
+                for (size_t i = 1; i < numberCards.size(); i++)
+                {
+                    // 根據符號卡片運算
+                    if (symbolIndex < symbolCards.size())
+                    {
+                        string symbol = symbolCards[symbolIndex]->getValue();
+                        if (symbol == "*" or symbol == "/")
+                        {
+                            // 如果是乘法或除法，先將結果存入中間結果容器
+                            int operand = stoi(numberCards[i]->getValue());
+                            if (symbol == "*")
+                            {
+                                intermediateResults.back() *= operand;
+                            }
+                            else if (symbol == "/")
+                            {
+                                if (operand != 0)
+                                {
+                                    intermediateResults.back() /= operand;
+                                }
+                                // 處理除以零的情況
+                                else
+                                {
+                                    invalid = true;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // 如果是加法或減法，將當前數字與中間結果容器的最後一個元素進行運算
+                            int operand = stoi(numberCards[i]->getValue());
+                            if (symbol == "+")
+                            {
+                                intermediateResults.push_back(operand);
+                            }
+                            else if (symbol == "-")
+                            {
+                                intermediateResults.push_back(-operand);
+                            }
+                        }
+
+                        // 移至下一個符號
+                        symbolIndex++;
+                    }
+                }
+
+                // 除以零的情況
+                if (invalid == true)
+                    continue;
+
+                // 將中間結果容器中的所有數字相加得到最終結果
+                double currentResult = 0;
+                for (double tempresult : intermediateResults)
+                {
+                    currentResult += tempresult;
+                }
+
+                // 計算差距的絕對值
+                double currentDifference1 = abs(currentResult - 1.0);
+                double currentDifference20 = abs(currentResult - 20.0);
+
+                // 更新最小差距的絕對值和對應的結果
+                if (currentDifference1 < minDifference or currentDifference20 < minDifference)
+                {
+                    minDifference = min(currentDifference1, currentDifference20);
+                    minDifference1 = currentDifference1;
+                    minDifference20 = currentDifference20;
+
+
+                    // 將數字卡片和符號卡片放入 updatedCardArr
+                    symbolIndex = 0;
+                    updatedCardArr.clear(); // 清空先前的內容
+                    for (size_t i = 0; i < numberCards.size(); i++)
+                    {
+                        updatedCardArr.push_back(numberCards[i]);
+                        if (symbolIndex < symbolCards.size())
+                        {
+                            updatedCardArr.push_back(symbolCards[symbolIndex]);
+                            symbolIndex++;
+                        }
+                    }
+                }
+            } while (next_permutation(numberCards.begin(), numberCards.end())); // 產生所有數字卡牌的排列組合
+        } while (next_permutation(symbolCards.begin(), symbolCards.end()));     // 產生所有符號卡牌的排列組合
+
+        if (minDifference20 < minDifference1)
+            this->bigOrSmall = true;
+
+
+        // 複製更新後的卡牌陣列回原始 cardArr
+        for (size_t i = 0; i < 7; i++)
+        {
+            cardArr[i] = updatedCardArr[i]; // 複製新的卡牌
         }
     }
-    for (int i = 0; i < cardInHand; i++)
-        this->cardArr[i] = newCardArr[i];
+    else{
+        int symbolIdx = 0;
+        int numIdx = 0;
+        Card *newCardArr[cardInHand];
+        int currIdx = 0;
+        // 找目前cardArr中的第一張符號牌
+        for (int i = 0; i < cardInHand; i++)
+        {
+            if (this->cardArr[i]->isSymbolCard() == true)
+            {
+                symbolIdx = i;
+                break;
+            }
+        }
+
+        // 找目前cardArr中的第一張數字牌
+        for (int i = 0; i < cardInHand; i++)
+        {
+            if (this->cardArr[i]->isSymbolCard() == false)
+            {
+                numIdx = i;
+                break;
+            }
+        }
+        // 如果符號排在數字前面就互換位置，放進新陣列
+        newCardArr[currIdx] = this->cardArr[numIdx];
+        currIdx++;
+        newCardArr[currIdx] = this->cardArr[symbolIdx];
+        currIdx++;
+
+        bool symbolFlag = true, numFlag = true;
+        while (symbolFlag || numFlag)
+        {
+            if (numFlag)
+                numFlag = _findNextIdx(false, numIdx);
+            if (symbolFlag)
+                symbolFlag = _findNextIdx(true, symbolIdx);
+            if (numFlag == true && symbolFlag == true)
+            {
+                newCardArr[currIdx] = this->cardArr[numIdx];
+                currIdx++;
+                newCardArr[currIdx] = this->cardArr[symbolIdx];
+                currIdx++;
+            }
+            else if (numFlag == true && symbolFlag == false)
+            {
+                newCardArr[currIdx] = this->cardArr[numIdx];
+                currIdx++;
+            }
+        }
+
+        for (int i = 0; i < 10; i++)
+        {
+            int idx1 = 2 * (rand() % 4);
+            int idx2 = 2 * (rand() % 4);
+            swapCard(newCardArr[idx1], newCardArr[idx2]);
+        }
+
+        for (int i = 0; i < cardInHand; i += 2)
+        {
+            if (newCardArr[i]->getValue().compare("/") == 0)
+            {
+                if (newCardArr[i + 1]->getValue().compare("0") == 0)
+                    swapCard(newCardArr[i - 1], newCardArr[i + 1]);
+            }
+        }
+        for (int i = 0; i < cardInHand; i++)
+            this->cardArr[i] = newCardArr[i];
+
+    }
 }
 
 int Landlord::biddingChips(const int currChip, const int limitChip){
