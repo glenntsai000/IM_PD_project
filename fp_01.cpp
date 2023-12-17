@@ -1104,7 +1104,7 @@ int Math::biddingChips(const int currChip, const int limitChip)
     {
         if (this->cardArr.size() < 7)
         {
-            bid = currChip - chipBiddenThisRound; // 下最少
+            bid = currChip - this->chipBiddenThisRound; // 下最少
             this->chipBiddenThisRound += bid;
         }
         else
