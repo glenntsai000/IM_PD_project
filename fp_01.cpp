@@ -1815,11 +1815,11 @@ void Landlord::payTax()
 {
     if(this->landNum > 0){
         if(this->totalChips < 20 && totalChips > 10)
-            this->totalChips = (int) this->totalChips * 0.9;
+            this->totalChips -= (int) this->totalChips * 0.1;
         else if(this->totalChips >= 20 && this -> totalChips < 40)
-            this->totalChips = (int) this->totalChips * 0.75;
+            this->totalChips -= (int) this->totalChips * 0.25;
         else if(this->totalChips >= 40)
-            this->totalChips = (int) this->totalChips * 0.6;
+            this->totalChips -= (int) this->totalChips * 0.4;
     }
 }
 
