@@ -2600,7 +2600,6 @@ void Game::biddingPerRound(int rnd)
         }
         else
         {
-            cout << "\n";
             cout << "加注開始" << endl;
 
             for (int i = 0; i < playerListPerRnd.size(); i++)
