@@ -3226,7 +3226,7 @@ int main()
     G.gameStart(py, playerNum);
     bool continueGame = true;
 
-    int totalRnd = totalRnd > 5 ? 5 : playerNum;
+    int totalRnd = playerNum > 5 ? playerNum : 5;
 
     for (int i = 1; i <= totalRnd; i++)
     {
