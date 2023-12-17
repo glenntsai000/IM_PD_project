@@ -1486,6 +1486,7 @@ public:
     void throwCard(Card *c);
     void obtainRent();
     void sellLand();
+    void payTax();
 };
 
 bool Landlord::_findNextIdx(bool isSymbol, int &idx)
@@ -1733,18 +1734,47 @@ void Landlord::sortCard()
 }
 
 int Landlord::biddingChips(const int currChip, const int limitChip){
-    int diff = currChip - this->chipBiddenThisRound;
-    if(diff <= limitChip / 2){
-        int bid = limitChip / 2;
-        this->chipBiddenThisRound += bid;
-        return bid;
-    }
-    else if(diff > limitChip / 2){
-        this->chipBiddenThisRound += diff;
-        return diff;
+    if(this->isSmart){
+        int diff = currChip - this->chipBiddenThisRound;
+        if(diff <= limitChip / 2){
+            int bid = limitChip / 2;
+            this->chipBiddenThisRound += bid;
+            return bid;
+        }
+        else if(diff > limitChip / 2){
+            this->chipBiddenThisRound += diff;
+            return diff;
+        }
+        else{
+            return -1;
+        }
     }
     else{
-        return -1;
+        int diff = currChip - this->chipBiddenThisRound;
+        this->bigOrSmall = rand() % 2;
+        if (this->totalChips == 0)
+        {
+            return -1; // 棄牌?
+        }
+
+        int bid = 0;
+        // if (diff >= 0)
+        {
+            int delta = min(limitChip, this->totalChips) - currChip + 1;
+            if (delta > 0)
+                bid = (rand() % delta) / 2+ diff;
+            else
+            {
+                if (rand() % 2 == 0)
+                    bid = diff;
+                else
+                    bid = -1;
+            }
+        }
+        if(bid != -1)
+            this->chipBiddenThisRound += bid;
+
+        return bid;
     }
 }
 
@@ -1764,14 +1794,14 @@ void Landlord::throwCard(Card *c)
 void Landlord::printWinner()
 {
     if(this->landNum > 0)
-        cout << "信義區大地主" << this->name << "贏了" << endl;
+        cout << this->location << "區大地主" << this->name << "贏了" << endl;
     else
-        cout << "(前)信義區地主" << this->name << "贏了" << endl;
+        cout << "(前)" << this->location << "區地主" << this->name << "贏了" << endl;
 }
 
 void Landlord::obtainRent()
 {
-    this->totalChips += this->landNum * this->landPrice;
+    this->totalChips += (int) (this->landNum * this->landPrice * 0.9);
 }
 
 void Landlord::sellLand()
@@ -1785,6 +1815,20 @@ void Landlord::sellLand()
         cout << RED << "(前)" << this->location << "區地主" << this->name << "出局" << NC << endl;
     }
 }
+
+void Landlord::payTax()
+{
+    if(this->landNum > 0){
+        if(this->totalChips < 20 && totalChips > 10)
+            this->totalChips = (int) this->totalChips * 0.9;
+        else if(this->totalChips >= 20 && this -> totalChips < 40)
+            this->totalChips = (int) this->totalChips * 0.75;
+        else if(this->totalChips >= 40)
+            this->totalChips = (int) this->totalChips * 0.6;
+    }
+}
+
+
 
 class AbsoluteLoser : public Character
 {
@@ -2080,6 +2124,12 @@ void Game::initPlayerRnd()
     for(int i = 0; i < this->playerList.size(); i++)
         this->playerListPerRnd.push_back(this->playerList[i]);
     this->playerFold = false;
+
+    for(int i = 0; i < this->playerList.size(); i++){
+        if(this->playerList[i]->type == "Landlord"){
+            dynamic_cast<Landlord*>(playerListPerRnd[i])->payTax();
+        }
+    }
 }
 
 
@@ -2849,6 +2899,34 @@ bool Game::endRound()
         this->playerList[i]->isFoldThisRound = false;
     }
     this->playerFold == false;
+
+    static bool playerOutOfGame = false;
+    if(this->playerAlive == false && playerOutOfGame == false){
+        string YN;
+        cout << "你已出局，是否在場邊觀賽(按Y留在場邊觀賽，N直接結束遊戲)：";
+        while (true)
+        {
+            try
+            {
+                cin.get();
+                getline(cin, YN);
+                if (YN != "Y" && YN != "N")
+                    throw invalid_argument("請輸入Y或N");
+                break;
+            }
+            catch (invalid_argument err)
+            {
+                if (err.what() == string("請輸入Y或N"))
+                    cerr << err.what();
+                // 清空錯誤狀態，以避免無窮迴圈
+            }
+        }
+        if(YN == "N")
+            return false;
+        else
+            playerOutOfGame = true;
+    }
+    
     return true;
 }
 
