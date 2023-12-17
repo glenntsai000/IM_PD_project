@@ -528,8 +528,6 @@ int Player::biddingChips(const int currChip, const int limitChip)
             }
             // 清空錯誤狀態，以避免無窮迴圈
             cin.clear();
-            // 忽略之前輸入的內容
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
     } while (playerBid > limitChip || (playerBid < lst && playerBid != -1));
 
@@ -642,7 +640,6 @@ void Player::printHandCard()
     {
         this->cardArr[i]->printCard();
         cout << " ";
-        this_thread::sleep_for(chrono::milliseconds(50));
     }
     cout << endl;
     cout << setw(15) << "Public : ";
@@ -652,7 +649,6 @@ void Player::printHandCard()
         {
             this->cardArr[i]->printCard();
             cout << " ";
-            this_thread::sleep_for(chrono::milliseconds(50));
         }
     }
     cout << endl;
@@ -663,7 +659,6 @@ void Player::printHandCard()
         {
             this->cardArr[i]->printCard();
             cout << " ";
-            this_thread::sleep_for(chrono::milliseconds(50));
         }
     }
     cout << endl;
@@ -2290,7 +2285,7 @@ void Game::printPlayersCard()
     // cout << "Other Player's Cards" << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
     {
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(chrono::milliseconds(200));
         if (this->playerListPerRnd[i]->isPlayer == false)
             this->playerListPerRnd[i]->printHandCard();
     }
@@ -2481,7 +2476,7 @@ void Game::biddingPrint()
             raised = "x";
         else
             raised = to_string(this->playerListPerRnd[i]->chipsRaised);
-
+        this_thread::sleep_for(chrono::milliseconds(100));
         printf("%-13s|  %*s  | %*d |%*d\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
@@ -2494,6 +2489,7 @@ void Game::printPlayerList()
     cout << "----------------------------------------------" << endl;
     for (int i = 0; i < playerList.size(); i++)
     {
+        this_thread::sleep_for(chrono::milliseconds(100));
         if (this->playerList[i]->isPlayer == true)
             cout << BOLD;
         cout << setw(13) << left << this->playerList[i]->name << "|";
@@ -2502,6 +2498,7 @@ void Game::printPlayerList()
         cout << NC << left << endl;
     }
     cout << "=============================================" << endl;
+    this_thread::sleep_for(chrono::milliseconds(2000));
 }
 
 void Game::enemySort()
@@ -2574,70 +2571,6 @@ void Game::gameStart(Player &pyptr, const int playerNum)
 
 void Game::calChips()
 {
-    // find player's position
-    //int playerPos = 0;
-    //for (int i = 0; i < this->playerListPerRnd.size(); i++)
-    //{
-    //    if (this->playerListPerRnd[i]->isPlayer == true)
-    //    {
-    //        playerPos = i;
-    //        break;
-    //    }
-    //}
-    /*
-    //cout << this->playerListPerRnd[playerPos]->name << "目前籌碼數量：" << playerListPerRnd[playerPos]->totalChips << endl;
-    if (playerListPerRnd[playerPos]->totalChips == 0)
-    {
-        for (int i = 1; i < this->playerListPerRnd.size(); i++)
-        {
-            cout << setw(10) << left;
-            playerListPerRnd[i]->printName();
-            cout << right;
-            cout << ": " << playerListPerRnd[i]->totalChips << endl;
-        }
-        for (int i = 0; i < this->playerListPerRnd.size(); i++)
-        {
-            if (playerListPerRnd[i]->totalChips == 0)
-            {
-                cout << "玩家";
-                cout << setw(10);
-                playerListPerRnd[i]->printName();
-                cout << " 籌碼數量歸零，退出遊戲。" << endl;
-                if(playerListPerRnd[i]->type == "JuDaKo")
-                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
-                else
-                    this->playerListPerRnd[i]->isAlive = false;
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < this->playerListPerRnd.size(); i++)
-        {
-            cout << setw(10) << left;
-            playerListPerRnd[i]->printName();
-            cout << right;
-            cout << ": " << playerListPerRnd[i]->totalChips << endl;
-        }
-        for (int i = 0; i < this->playerListPerRnd.size(); i++)
-        {
-            if (playerListPerRnd[i]->totalChips <= 0)
-            {
-                cout << "玩家";
-                cout << setw(10);
-                playerListPerRnd[i]->printName();
-                cout << " 籌碼數量歸零，退出遊戲。" << endl;
-                if(playerListPerRnd[i]->type == "JuDaKo")
-                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
-                else{
-                    if(this->playerListPerRnd[i]->isPlayer == true)
-                        this->playerAlive = false;
-                    this->playerListPerRnd[i]->isAlive = false;
-                }
-            }
-        }
-    }
-    */
     cout << setw(13) << left << "NAME" << "|" << setw(13) << "  CHARACTER  " << "|" <<setw(18) << "   REMAIN CHIPS"<< endl;
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
@@ -2762,7 +2695,7 @@ void Game::printResult()
     {
         cout << "沒有賭大的贏家" << endl;
     }
-    this_thread::sleep_for(chrono::milliseconds(500));
+    this_thread::sleep_for(chrono::milliseconds(200));
     if (smallWinner != nullptr)
     {
         cout << "賭小的贏家是：";
@@ -2773,7 +2706,7 @@ void Game::printResult()
     {
         cout << "沒有賭小的贏家" << endl;
     }
-    this_thread::sleep_for(chrono::milliseconds(500));
+    this_thread::sleep_for(chrono::milliseconds(200));
     // 輸出其餘玩家的名稱和數學式結果
     if(this->playerListPerRnd.size() > 2 || (bigWinner == nullptr || smallWinner == nullptr))
         cout << "其餘玩家：" << endl;
@@ -2789,7 +2722,7 @@ void Game::printResult()
             else
                 cout << " 賭小 ";
             cout << " 數學式結果為：" << setw(7) << right << fixed << setprecision(3) << playerValue[i] << left << endl;
-           this_thread::sleep_for(chrono::milliseconds(500));
+           this_thread::sleep_for(chrono::milliseconds(200));
         }
     }
     
@@ -2908,7 +2841,6 @@ bool Game::endRound()
         {
             try
             {
-                cin.get();
                 getline(cin, YN);
                 if (YN != "Y" && YN != "N")
                     throw invalid_argument("請輸入Y或N");
@@ -2916,9 +2848,8 @@ bool Game::endRound()
             }
             catch (invalid_argument err)
             {
-                if (err.what() == string("請輸入Y或N"))
-                    cerr << err.what();
-                // 清空錯誤狀態，以避免無窮迴圈
+                cout << err.what() << ":";
+                cin.clear(); 
             }
         }
         if(YN == "N")
