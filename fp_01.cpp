@@ -1805,6 +1805,8 @@ void Landlord::sellLand()
         this->landNum--;
         this->totalChips += this->landPrice;
         cout << GREEN << this->location << "區地主" << this->name << "賣掉1筆" << this->location << "區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landNum << "筆" << this->location<< "區土地" << NC << endl;
+        if(this->landNum == 0)
+            this->type = "Normal";
     }
     else{
         cout << RED << "(前)" << this->location << "區地主" << this->name << "出局" << NC << endl;
@@ -2121,7 +2123,7 @@ void Game::initPlayerRnd()
     this->playerFold = false;
 
     for(int i = 0; i < this->playerList.size(); i++){
-        if(this->playerList[i]->type == "Landlord"){
+        if(this->playerList[i]->type == "Landlord" || this->playerList[i]->type == "Normal"){
             dynamic_cast<Landlord*>(playerListPerRnd[i])->payTax();
         }
     }
@@ -2591,7 +2593,7 @@ void Game::calChips()
             cout << " 籌碼數量歸零，退出遊戲。" << endl;
             if(playerListPerRnd[i]->type == "JuDaKo")
                 dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
-            else if(playerListPerRnd[i]->type == "Landlord")
+            else if(playerListPerRnd[i]->type == "Landlord" || this->playerList[i]->type == "Normal")
                 dynamic_cast<Landlord*>(playerListPerRnd[i])->sellLand();
             else{
                 if(this->playerListPerRnd[i]->isPlayer == true)
@@ -2821,7 +2823,7 @@ bool Game::endRound()
     }
     // 地主收租金
     for(int i = 0; i  < this->playerList.size(); i++){
-        if(this->playerList[i]->type == "Landlord"){
+        if(this->playerList[i]->type == "Landlord" || this->playerList[i]->type == "Normal"){
             dynamic_cast<Landlord*>(this->playerList[i])->obtainRent();
         }
     }
