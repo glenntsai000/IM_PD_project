@@ -1511,7 +1511,7 @@ bool Landlord::_findNextIdx(bool isSymbol, int &idx)
 Landlord::Landlord(const string n) : Character(n, false, "Landlord")
 {
     this->landNum = rand() % 3 + 1;
-    this->landPrice = rand() % 4 + 2;
+    this->landPrice = rand() % 7 + 2;
     this->isSmart = rand() % 2;
     vector<string> locationList = {"信義", "松山", "南港" , "大安", "文山" , "中正", "中山", "大同", "萬華", "士林", "北投", "內湖"};
     this->location = locationList[rand() % 12];
