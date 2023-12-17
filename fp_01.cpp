@@ -3018,24 +3018,28 @@ void Game::decisionInput()
         }
 
         bool bidDirection = true;
-        char input;
+        string input;
         cout << "請決定賭大 / 小，並輸入您的最終數學式" << endl;
         cout << "輸入賭注方(B / S) : ";
         try
         {
+            cin.clear();
             cin >> input;
-            if (input != 'S' && input != 'B')
+            cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            if (input != "S" && input != "B")
                 throw invalid_argument("invalid input");
         }
         catch (invalid_argument err)
         {
-            while (input != 'S' && input != 'B')
+            //input = 0;
+            while (input != "S" && input != "B")
             {
                 cout << "必須輸入B或S，重新輸入賭注方(B / S) : ";
                 cin >> input;
+                cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
         }
-        if (input == 'S')
+        if (input == "S")
             bidDirection = false;
 
         playerListPerRnd[playerPos]->bigOrSmall = bidDirection;
@@ -3169,7 +3173,7 @@ int main()
     srand(time(nullptr));
     int playerNum = 3; // 預設值3
     cout << "資管盃慈善德州撲克大賽" << endl;
-    cout << "請輸入玩家人數(2~10): ";
+    cout << "請輸入玩家人數(3~10): ";
     while (true)
     {
         try
@@ -3177,7 +3181,7 @@ int main()
             cin >> playerNum;
             if (cin.fail())
                 throw invalid_argument("非數字");
-            if (playerNum > 10 || playerNum < 2)
+            if (playerNum > 10 || playerNum < 3)
                 throw invalid_argument("請輸入在限制範圍內的數字");
             break;
         }
