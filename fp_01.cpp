@@ -17,6 +17,8 @@ using namespace std;
 #define GREEN "\e[0;92m"
 #define BLUE "\e[0;94m"
 #define BOLD "\033[1m"
+#define GOLD "\e[38;5;220m"
+
 
 const int initialTotalChips = 10;
 const int cardInHand = 7;
@@ -1470,7 +1472,7 @@ void JuDaKo::throwCard(Card *c)
 
 void JuDaKo::printWinner()
 {
-    cout << "豬...大..哥...." << this->name << "獲勝" << endl;
+    cout << "豬...大..哥...." << GOLD << this->name << NC << "獲勝" << endl;
 }
 
 
@@ -3051,6 +3053,7 @@ bool Game::endRound()
     if(this->playerAlive == false && playerOutOfGame == false){
         string YN;
         cout << "你已出局，是否在場邊觀賽(按Y留在場邊觀賽，N直接結束遊戲)：";
+        cin.get();
         while (true)
         {
             try
