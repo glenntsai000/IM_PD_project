@@ -491,11 +491,11 @@ int Player::biddingChips(const int currChip, const int limitChip)
 {
     int lst = currChip - chipBiddenThisRound;
     if (lst == limitChip)
-        cout << this->name << "請進行加注" << endl
+        cout << this->name << " 請進行加注" << endl
              << "請輸入 " << lst << " ，若欲放棄這回合不繼續下注請輸入 x : ";
     else
         cout << this->name << "請進行加注" << endl
-             << "請輸入 " << lst << "~" << limitChip << " 的值，若欲放棄這回合不繼續下注請輸入 x : ";
+             << "請輸入 " << lst << "~" << limitChip << " ，若欲放棄這回合請輸入 x : ";
     string inputBid;
     int playerBid = 0;
     do
@@ -2449,6 +2449,10 @@ void Game::dealCard(int rnd)
     }
     else if (rnd == 1)
     {
+        // 這回合只剩下一位玩家（其他棄牌），不用發牌
+        if(this->playerListPerRnd.size() == 1)
+            return;
+
         for (int i = 0; i < this->playerList.size(); i++)
         {
             this->cardList[cardListIdx]->setVisibility(false);
@@ -2504,6 +2508,9 @@ void Game::dealCard(int rnd)
     }
     else if (rnd == 2)
     {
+        if(this->playerListPerRnd.size() == 1)
+            return;
+            
         for (int i = 0; i < this->playerList.size(); i++)
         {
             if (this->cardList[cardListIdx]->getValue().compare("*") != 0)
@@ -2528,6 +2535,8 @@ void Game::dealCard(int rnd)
 
 void Game::printPlayersCard()
 {
+    if(this->playerListPerRnd.size() == 1)
+        return;
     // print enemies' first
     cout << "-------------" << setw(10) << right << "Other Player's Cards" << setw(10) << left << "-------------"
          << endl;
@@ -2575,9 +2584,17 @@ void Game::biddingPerRound(int rnd)
     }
     else // 第一次下注與第二次下注
     {
+        // 只剩下一個人沒棄牌的話 跳過（第二輪）
+        if(this->playerListPerRnd.size() == 1)
+            return;
+        
+        cout << setw(20) << setfill('-') << ""
+             << "BID  " << rnd << setw(20) << "" << setfill(' ') << endl;
+
         cout << "\n";
         bool bidEnd = false;
-        if (currChip == leastChips){
+        if (currChip == leastChips)
+        {
             for (int i = 0; i < playerListPerRnd.size(); i++)
             {
                 this->playerListPerRnd[i]->chipsRaised = 0;
@@ -2659,6 +2676,10 @@ void Game::biddingPerRound(int rnd)
                 }
                 if (cntSame == playerListPerRnd.size())
                     bidEnd = true;
+
+                // 只剩一個人沒有棄牌，結束下注
+                if(this->playerListPerRnd.size() == 1)
+                    bidEnd = true;
             }
         }
 
@@ -2711,6 +2732,10 @@ void Game::printPlayerList()
 
 void Game::enemySort()
 {
+    // 只剩下一個人沒棄牌的話 跳過
+    if(this->playerListPerRnd.size() == 1)
+        return;
+
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
     {
         if (this->playerListPerRnd[i]->isPlayer == false)
@@ -2819,6 +2844,18 @@ void Game::calChips()
 
 void Game::printResult()
 {
+    // 只剩下一個人沒棄牌的話 籌碼+5
+    if(this->playerListPerRnd.size() == 1)
+    {   
+        cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
+        cout << "玩家" << this->playerListPerRnd[0]->name << "為本回合唯一玩家！\n獲得5個籌碼獎勵\n";
+        playerListPerRnd[0]->totalChips += chipsInRound;
+        playerListPerRnd[0]->totalChips += 5;
+        return;
+    }
+
+    cout << setw(15) << setfill('-')  << endl;
+
     // 計算大家的結果，找出贏的人
     vector<double> playerValue;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
@@ -2962,6 +2999,10 @@ void Game::printResult()
 
 void Game::decisionInput()
 {
+    // 只剩下玩家沒棄牌的話 跳過
+    if(this->playerListPerRnd.size() == 1)
+        return;
+
     if (this->playerAlive == true && this->playerFold == false)
     {
         // 第二輪下注結束
@@ -3171,17 +3212,12 @@ int main()
         //     << "發基本符號牌三張" << setw(14) << "" << setfill(' ') << endl;
         G.biddingPerRound(0);
         G.dealCard(1);
-        cout << setw(20) << setfill('-') << ""
-             << "BID  1" << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(1);
         G.dealCard(2);
-        cout << setw(20) << setfill('-') << ""
-             << "BID  2" << setw(20) << "" << setfill(' ') << endl;
         G.biddingPerRound(2);
         G.printPlayersCard();
         G.enemySort();
         G.decisionInput();
-        cout << setw(15) << setfill('-') << endl;
         G.printResult();
         G.calChips();
         G.kickoutPlayer();                                 // 將籌碼歸零的玩家移除playerList;
