@@ -645,28 +645,28 @@ void Player::printHandCard()
         this_thread::sleep_for(chrono::milliseconds(50));
     }
     cout << endl;
-    cout << setw(15) << "Public : ";
-    for (int i = 0; i < this->cardArr.size(); i++)
-    {
-        if (this->cardArr[i]->getVisibility() == true)
-        {
-            this->cardArr[i]->printCard();
-            cout << " ";
-            this_thread::sleep_for(chrono::milliseconds(50));
-        }
-    }
-    cout << endl;
-    cout << setw(15) << "Hidden : ";
-    for (int i = 0; i < this->cardArr.size(); i++)
-    {
-        if (this->cardArr[i]->getVisibility() == false)
-        {
-            this->cardArr[i]->printCard();
-            cout << " ";
-            this_thread::sleep_for(chrono::milliseconds(50));
-        }
-    }
-    cout << endl;
+    // cout << setw(15) << "Public : ";
+    // for (int i = 0; i < this->cardArr.size(); i++)
+    // {
+    //     if (this->cardArr[i]->getVisibility() == true)
+    //     {
+    //         this->cardArr[i]->printCard();
+    //         cout << " ";
+    //         this_thread::sleep_for(chrono::milliseconds(50));
+    //     }
+    // }
+    // cout << endl;
+    // cout << setw(15) << "Hidden : ";
+    // for (int i = 0; i < this->cardArr.size(); i++)
+    // {
+    //     if (this->cardArr[i]->getVisibility() == false)
+    //     {
+    //         this->cardArr[i]->printCard();
+    //         cout << " ";
+    //         this_thread::sleep_for(chrono::milliseconds(50));
+    //     }
+    // }
+    // cout << endl;
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
 }
 
@@ -869,11 +869,11 @@ int Drunkard::biddingChips(const int currChip, const int limitChip)
     this->bigOrSmall = rand() % 2;
     if (this->totalChips == 0)
     {
-        return -1; // 棄牌?
+        return -1; // 棄牌
     }
 
     int bid = 0;
-    // if (diff >= 0)
+    if (diff >= 0)
     {
         int delta = min(limitChip, this->totalChips) - currChip + 1;
         if (delta > 0)
@@ -1019,6 +1019,7 @@ void Rich::sortCard()
 
     for (int i = 0; i < 7; i++)
         this->cardArr[i] = newCardArr[i];
+
     // 富豪會把數字由大到小排列
     for (int i = 0; i < 3; i++)
     {
@@ -1978,7 +1979,7 @@ void AbsoluteLoser::sortCard()
             double currentDifference1 = abs(currentResult - 1.0);
             double currentDifference20 = abs(currentResult - 20.0);
 
-            // 更新最小差距的絕對值和對應的結果
+            // 更新最大差距的絕對值和對應的結果
             if (currentDifference1 > maxDifference or currentDifference20 > maxDifference)
             {
                 maxDifference = max(currentDifference1, currentDifference20);
@@ -2017,7 +2018,245 @@ void AbsoluteLoser::printWinner()
 {
     cout << "你輸了..." << '\n'
         << "最終贏家為： " << this->name << endl;
+};
+
+class Coward: public Character
+{
+private:
+    int biddingRnd;
+    bool beBrave;
+    bool _findNextIdx(bool isSymbol, int &idx);
+
+public:
+    Coward(const string n); // constructor
+    ~Coward() {};
+    void sortCard();
+    int biddingChips(const int currChip, const int limitChip); 
+    void printWinner();
+    void throwCard(Card* c);
+};
+
+Coward::Coward(const string n) : Character(n, false, "Coward")
+{
+    biddingRnd = 0;
+    beBrave == false;
 }
+
+
+void Coward::throwCard(Card* c)
+{
+    cout << "thi";
+    // return; // 丟棄*號
+}
+
+int Coward::biddingChips(const int currChip, const int limitChip)
+{
+    int diff = currChip - this->chipBiddenThisRound;
+    int bid = 0;
+
+
+    // 第一輪下注
+    if(this->cardArr.size() < 7)
+    {
+        if(currChip > (this->totalChips + this->chipBiddenThisRound) * 0.5)
+            bid = -1; // 如果要下注的數量超過50% 棄牌
+
+        else if (currChip == 1)
+        {
+            bid = 1; // 如果是第一個下注的人 下注 1
+        }
+        else
+        {
+            bid = diff; // 只跟注 不多加注
+        }
+    }     
+    // 第二輪下注 
+    else
+    {
+        vector<Card*> tempArr;
+        for (int i = 0; i < 7; i++)
+            tempArr.push_back(cardArr[i]);
+
+        int diff = currChip - this->chipBiddenThisRound; // 最低下注數量
+
+        this->sortCard();
+        double result = this->calCard();
+        double resultDiff = 0;
+        double target = 0;
+
+        if (this->bigOrSmall == true)
+            target = 20;
+        else
+            target = 1;
+
+        resultDiff = abs(result - target); // 計算跟target的差距
+
+        if (resultDiff < 1)
+            bid =  max(diff, limitChip - 1); // // 卡計算結果接近 1 or 20，全下
+        else if(currChip > (this->totalChips + this->chipBiddenThisRound) * 0.75)
+            bid = -1; // 如果要下注的數量超過75%
+        else
+        {
+            bid = diff; // 只跟注 不多加注
+        }
+
+        for (int i = 0; i < 7; i++)
+            this->cardArr[i] = tempArr[i];
+    }
+
+    if (bid > -1)
+        this->chipBiddenThisRound += bid;
+    
+
+    return bid;
+}
+
+
+void Coward::sortCard()
+{
+    vector<Card *> numberCards; // 數字卡牌
+    vector<Card *> symbolCards; // 符號卡牌
+
+    // 將數字卡片和符號卡片分別放入對應的向量中
+    for (int i = 0; i < 7; i++)
+    {
+        if (cardArr[i] != nullptr)
+        {
+            if (NumberCard *numCard = dynamic_cast<NumberCard *>(cardArr[i]))
+            {
+                numberCards.push_back(numCard);
+            }
+            else if (SymbolCard *symCard = dynamic_cast<SymbolCard *>(cardArr[i]))
+            {
+                symbolCards.push_back(symCard);
+            }
+        }
+    }
+
+    // 儲存最小差距的絕對值和對應的結果
+    double minDifference = numeric_limits<double>::infinity();
+    double minDifference1 = numeric_limits<double>::infinity();
+    double minDifference20 = numeric_limits<double>::infinity();
+    vector<Card *> updatedCardArr; // 暫存更新後的卡牌排列
+
+    // 窮舉所有可能的排列組合
+    // 遍歷 4! * 3! = 144種可能性，找出optimal solution
+    do
+    {
+        do
+        {
+            bool invalid = false; // 判斷是不是除以0
+            int firstValue = stoi(numberCards[0]->getValue());
+            size_t symbolIndex = 0;
+
+            // 用來儲存中間結果的容器
+            vector<double> intermediateResults;
+            intermediateResults.push_back(firstValue);
+
+            for (size_t i = 1; i < numberCards.size(); i++)
+            {
+                // 根據符號卡片運算
+                if (symbolIndex < symbolCards.size())
+                {
+                    string symbol = symbolCards[symbolIndex]->getValue();
+                    if (symbol == "*" or symbol == "/")
+                    {
+                        // 如果是乘法或除法，先將結果存入中間結果容器
+                        int operand = stoi(numberCards[i]->getValue());
+                        if (symbol == "*")
+                        {
+                            intermediateResults.back() *= operand;
+                        }
+                        else if (symbol == "/")
+                        {
+                            if (operand != 0)
+                            {
+                                intermediateResults.back() /= operand;
+                            }
+                            // 處理除以零的情況
+                            else
+                            {
+                                invalid = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // 如果是加法或減法，將當前數字與中間結果容器的最後一個元素進行運算
+                        int operand = stoi(numberCards[i]->getValue());
+                        if (symbol == "+")
+                        {
+                            intermediateResults.push_back(operand);
+                        }
+                        else if (symbol == "-")
+                        {
+                            intermediateResults.push_back(-operand);
+                        }
+                    }
+
+                    // 移至下一個符號
+                    symbolIndex++;
+                }
+            }
+
+            // 除以零的情況
+            if (invalid == true)
+                continue;
+
+            // 將中間結果容器中的所有數字相加得到最終結果
+            double currentResult = 0;
+            for (double tempresult : intermediateResults)
+            {
+                currentResult += tempresult;
+            }
+
+            // 計算差距的絕對值
+            double currentDifference1 = abs(currentResult - 1.0);
+            double currentDifference20 = abs(currentResult - 20.0);
+
+            // 更新最小差距的絕對值和對應的結果
+            if (currentDifference1 < minDifference or currentDifference20 < minDifference)
+            {
+                minDifference = min(currentDifference1, currentDifference20);
+                minDifference1 = currentDifference1;
+                minDifference20 = currentDifference20;
+
+
+                // 將數字卡片和符號卡片放入 updatedCardArr
+                symbolIndex = 0;
+                updatedCardArr.clear(); // 清空先前的內容
+                for (size_t i = 0; i < numberCards.size(); i++)
+                {
+                    updatedCardArr.push_back(numberCards[i]);
+                    if (symbolIndex < symbolCards.size())
+                    {
+                        updatedCardArr.push_back(symbolCards[symbolIndex]);
+                        symbolIndex++;
+                    }
+                }
+            }
+        } while (next_permutation(numberCards.begin(), numberCards.end())); // 產生所有數字卡牌的排列組合
+    } while (next_permutation(symbolCards.begin(), symbolCards.end()));     // 產生所有符號卡牌的排列組合
+
+    if (minDifference20 < minDifference1)
+        this->bigOrSmall = true;
+
+
+    // 複製更新後的卡牌陣列回原始 cardArr
+    for (size_t i = 0; i < 7; i++)
+    {
+        cardArr[i] = updatedCardArr[i]; // 複製新的卡牌
+    }
+}
+
+void Coward::printWinner()
+{
+    cout << "你輸了..." << '\n'
+         << "膽小鬼翻身！最終贏家為：" << this->name << endl;
+}
+
+
 
 class Game
 {
@@ -2314,22 +2553,25 @@ void Game::biddingPerRound(int rnd)
         {
             cout << "\n";
             cout << "加注開始" << endl;
-            
+
+            for (int i = 0; i < playerListPerRnd.size(); i++)
+            {
+                this->playerListPerRnd[i]->chipsRaised = 0;
+            }
+
             while (bidEnd == false)
             {
-                for (int i = 0; i < playerListPerRnd.size(); i++)
-                {
-                    this->playerListPerRnd[i]->chipsRaised = 0;
-                }
-                bool startBid = true;
+                // cout << "rr"<< endl;
                 for (int i = 0; i < playerListPerRnd.size(); i++)
                 {
                     int pyBidNum = 0;
                     
                     if(this->playerListPerRnd[i]->chipBiddenThisRound == leastChips)
                         continue;
-                    if (startBid == true && currChip == this->playerListPerRnd[i]->chipBiddenThisRound && this->playerListPerRnd[i]->isPlayer == false) // 此輪非第一次加注，但加注總數量與上次相同
+                    if (this->playerListPerRnd[i]->chipsRaised > 0 && currChip == this->playerListPerRnd[i]->chipBiddenThisRound && this->playerListPerRnd[i]->isPlayer == false) // 此輪非第一次加注，但加注總數量與上次相同
+                    {
                         pyBidNum = 0;
+                    }
                     else
                     {
                         if (this->playerListPerRnd[i]->isPlayer)
@@ -2340,6 +2582,7 @@ void Game::biddingPerRound(int rnd)
                         pyBidNum = this->playerListPerRnd[i]->biddingChips(currChip, (leastChips - this->playerListPerRnd[i]->chipBiddenThisRound));
                     }
                     this->playerListPerRnd[i]->chipsRaised = pyBidNum;
+                    
                     // is fold
                     if (pyBidNum == -1)
                     {
@@ -2351,45 +2594,29 @@ void Game::biddingPerRound(int rnd)
                         continue;
                     }
 
-                    // remove from playerlist this rnd
+                    
                     if (this->playerListPerRnd[i]->chipBiddenThisRound < currChip)
                     {
                         pyBidNum = currChip - this->playerListPerRnd[i]->chipBiddenThisRound;
                         this->playerListPerRnd[i]->chipBiddenThisRound = currChip;
                     }
 
-                    // print player bidding situation
-                    // cout << setw(9) << left;
-                    // cout << this->playerListPerRnd[i]->name << " 加注數量: " << setw(2) << right << pyBidNum;
-                    // cout << " || "
-                    //      << " 總下注數量: " << this->playerListPerRnd[i]->chipBiddenThisRound << endl;
 
                     currChip = max(this->playerListPerRnd[i]->chipBiddenThisRound, currChip);
                     chipsInRound += pyBidNum;
                     this->playerListPerRnd[i]->totalChips -= pyBidNum;
-                    startBid = false;
                 }
 
+                // remove players who fold from the player list this rnd
                 for (int i = 0; i < playerListPerRnd.size(); i++)
                 {
                     if (this->playerListPerRnd[i]->isFoldThisRound)
                     {
                         this->playerListPerRnd.erase(this->playerListPerRnd.begin() + i);
-                        // cout << "someone fold;; " << playerListPerRnd.size() <<
-                        // playerList.size() << endl;
-                        //i--;
+                        i--;
                     }
                 }
 
-                // for (int i = 0; i < playerListPerRnd.size(); i++)
-                // {
-                //     if (this->playerListPerRnd[i]->isFoldThisRound == true)
-                //         continue; // 已棄牌
-                //     cout << setw(10) << left;
-                //     cout << this->playerListPerRnd[i]->name << " 目前手中籌碼總數: ";
-                //     cout << this->playerListPerRnd[i]->totalChips << endl;
-                // }
-                // Game::printPlayerChips(2);
 
                 int cntSame = 0;
                 for (int i = 0; i < playerListPerRnd.size(); i++)
@@ -2403,6 +2630,7 @@ void Game::biddingPerRound(int rnd)
         }
         cout << "\n" << setw(17) << setfill('-') << ""
              << "Stop bidding" << setw(17) << ""  << setfill(' ') << endl;
+        
         for (int i = 0; i < playerListPerRnd.size(); i++)
         {
             if (this->playerListPerRnd[i]->isFoldThisRound)
@@ -2480,7 +2708,7 @@ void Game::gameStart(Player &pyptr, const int playerNum)
     // 隨機加入不同角色的電腦玩家
     for (int i = 1; i < playerNum; i++)
     {
-        ran = rand() % 6;
+        ran = rand() % 7;
         if (ran == 0)
         {
             Drunkard *d = new Drunkard(nameList.back());
@@ -2506,9 +2734,14 @@ void Game::gameStart(Player &pyptr, const int playerNum)
             Landlord *l = new Landlord(nameList.back());
             this->playerList.push_back(l);
         }
-        else
+        else if (ran == 5)
         {
             AbsoluteLoser* a = new AbsoluteLoser(nameList.back());
+            this->playerList.push_back(a);
+        }
+        else
+        {
+            Coward* a = new Coward(nameList.back());
             this->playerList.push_back(a);
         }
         nameList.pop_back();
@@ -2617,6 +2850,7 @@ void Game::calChips()
             }
         }
     }
+    cout << "\n";
     this_thread::sleep_for(chrono::milliseconds(5000));
 }
 
@@ -2903,7 +3137,23 @@ int main()
     // main for test
     cout << "請輸入玩家名稱: ";
     string playerName;
-    cin >> playerName;
+    while (true)
+    {
+        try
+        {
+            cin >> playerName;
+            if (playerName.length() > 10)
+                throw invalid_argument("請輸入10個字以內的名稱");
+            break;
+        }
+        catch (invalid_argument err)
+        {
+            cerr << err.what() << "，請重新輸入：";
+            // 清空錯誤狀態，以避免無窮迴圈
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+        }
+    }
     Player py(playerName);
     
     py.printName();
@@ -2914,8 +3164,11 @@ int main()
     G.gameStart(py, playerNum);
     bool continueGame = true;
 
-    for (int i = 1; i <= playerNum; i++)
+    int totalRnd = totalRnd > 5 ? 5 : playerNum;
+
+    for (int i = 1; i <= totalRnd; i++)
     {
+        cout << "\n";
         cout << setw(19) << setfill('-') << ""
              << BOLD << "ROUND" << setw(3) << right << setfill(' ') << i << setfill('-') << left << NC << setw(19) << "" << setfill(' ') << endl;
         G.initPlayerRnd();
