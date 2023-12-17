@@ -528,8 +528,6 @@ int Player::biddingChips(const int currChip, const int limitChip)
             }
             // 清空錯誤狀態，以避免無窮迴圈
             cin.clear();
-            // 忽略之前輸入的內容
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
         }
     } while (playerBid > limitChip || (playerBid < lst && playerBid != -1));
 
@@ -642,7 +640,6 @@ void Player::printHandCard()
     {
         this->cardArr[i]->printCard();
         cout << " ";
-        this_thread::sleep_for(chrono::milliseconds(50));
     }
     cout << endl;
     // cout << setw(15) << "Public : ";
@@ -1487,6 +1484,7 @@ public:
     void throwCard(Card *c);
     void obtainRent();
     void sellLand();
+    void payTax();
 };
 
 bool Landlord::_findNextIdx(bool isSymbol, int &idx)
@@ -1515,8 +1513,8 @@ bool Landlord::_findNextIdx(bool isSymbol, int &idx)
 
 Landlord::Landlord(const string n) : Character(n, false, "Landlord")
 {
-    this->landNum = rand() % 5 + 1;
-    this->landPrice = rand() % 5 + 2;
+    this->landNum = rand() % 3 + 1;
+    this->landPrice = rand() % 7 + 2;
     this->isSmart = rand() % 2;
     vector<string> locationList = {"信義", "松山", "南港" , "大安", "文山" , "中正", "中山", "大同", "萬華", "士林", "北投", "內湖"};
     this->location = locationList[rand() % 12];
@@ -1734,18 +1732,47 @@ void Landlord::sortCard()
 }
 
 int Landlord::biddingChips(const int currChip, const int limitChip){
-    int diff = currChip - this->chipBiddenThisRound;
-    if(diff <= limitChip / 2){
-        int bid = limitChip / 2;
-        this->chipBiddenThisRound += bid;
-        return bid;
-    }
-    else if(diff > limitChip / 2){
-        this->chipBiddenThisRound += diff;
-        return diff;
+    if(this->isSmart){
+        int diff = currChip - this->chipBiddenThisRound;
+        if(diff <= limitChip / 2){
+            int bid = limitChip / 2;
+            this->chipBiddenThisRound += bid;
+            return bid;
+        }
+        else if(diff > limitChip / 2){
+            this->chipBiddenThisRound += diff;
+            return diff;
+        }
+        else{
+            return -1;
+        }
     }
     else{
-        return -1;
+        int diff = currChip - this->chipBiddenThisRound;
+        this->bigOrSmall = rand() % 2;
+        if (this->totalChips == 0)
+        {
+            return -1; // 棄牌?
+        }
+
+        int bid = 0;
+        // if (diff >= 0)
+        {
+            int delta = min(limitChip, this->totalChips) - currChip + 1;
+            if (delta > 0)
+                bid = (rand() % delta) / 2+ diff;
+            else
+            {
+                if (rand() % 2 == 0)
+                    bid = diff;
+                else
+                    bid = -1;
+            }
+        }
+        if(bid != -1)
+            this->chipBiddenThisRound += bid;
+
+        return bid;
     }
 }
 
@@ -1765,14 +1792,14 @@ void Landlord::throwCard(Card *c)
 void Landlord::printWinner()
 {
     if(this->landNum > 0)
-        cout << "信義區大地主" << this->name << "贏了" << endl;
+        cout << this->location << "區大地主" << this->name << "贏了" << endl;
     else
-        cout << "(前)信義區地主" << this->name << "贏了" << endl;
+        cout << "(前)" << this->location << "區地主" << this->name << "贏了" << endl;
 }
 
 void Landlord::obtainRent()
 {
-    this->totalChips += this->landNum * this->landPrice;
+    this->totalChips += (int) (this->landNum * this->landPrice * 0.5);
 }
 
 void Landlord::sellLand()
@@ -1781,11 +1808,27 @@ void Landlord::sellLand()
         this->landNum--;
         this->totalChips += this->landPrice;
         cout << GREEN << this->location << "區地主" << this->name << "賣掉1筆" << this->location << "區的土地，換到" << this->landPrice << "個籌碼，目前剩下" <<this->landNum << "筆" << this->location<< "區土地" << NC << endl;
+        if(this->landNum == 0)
+            this->type = "Normal";
     }
     else{
         cout << RED << "(前)" << this->location << "區地主" << this->name << "出局" << NC << endl;
     }
 }
+
+void Landlord::payTax()
+{
+    if(this->landNum > 0){
+        if(this->totalChips < 20 && totalChips > 10)
+            this->totalChips -= (int) this->totalChips * 0.1;
+        else if(this->totalChips >= 20 && this -> totalChips < 40)
+            this->totalChips -= (int) this->totalChips * 0.25;
+        else if(this->totalChips >= 40)
+            this->totalChips -= (int) this->totalChips * 0.4;
+    }
+}
+
+
 
 class AbsoluteLoser : public Character
 {
@@ -2319,6 +2362,12 @@ void Game::initPlayerRnd()
     for(int i = 0; i < this->playerList.size(); i++)
         this->playerListPerRnd.push_back(this->playerList[i]);
     this->playerFold = false;
+
+    for(int i = 0; i < this->playerList.size(); i++){
+        if(this->playerList[i]->type == "Landlord" || this->playerList[i]->type == "Normal"){
+            dynamic_cast<Landlord*>(playerListPerRnd[i])->payTax();
+        }
+    }
 }
 
 
@@ -2479,7 +2528,7 @@ void Game::printPlayersCard()
     // cout << "Other Player's Cards" << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
     {
-        this_thread::sleep_for(chrono::milliseconds(100));
+        this_thread::sleep_for(chrono::milliseconds(200));
         if (this->playerListPerRnd[i]->isPlayer == false)
             this->playerListPerRnd[i]->printHandCard();
     }
@@ -2659,7 +2708,7 @@ void Game::biddingPrint()
             raised = "x";
         else
             raised = to_string(this->playerListPerRnd[i]->chipsRaised);
-
+        this_thread::sleep_for(chrono::milliseconds(100));
         printf("%-13s|  %*s  | %*d |%*d\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
@@ -2672,6 +2721,7 @@ void Game::printPlayerList()
     cout << "----------------------------------------------" << endl;
     for (int i = 0; i < playerList.size(); i++)
     {
+        this_thread::sleep_for(chrono::milliseconds(100));
         if (this->playerList[i]->isPlayer == true)
             cout << BOLD;
         cout << setw(13) << left << this->playerList[i]->name << "|";
@@ -2680,6 +2730,7 @@ void Game::printPlayerList()
         cout << NC << left << endl;
     }
     cout << "=============================================" << endl;
+    this_thread::sleep_for(chrono::milliseconds(2000));
 }
 
 void Game::enemySort()
@@ -2757,70 +2808,6 @@ void Game::gameStart(Player &pyptr, const int playerNum)
 
 void Game::calChips()
 {
-    // find player's position
-    //int playerPos = 0;
-    //for (int i = 0; i < this->playerListPerRnd.size(); i++)
-    //{
-    //    if (this->playerListPerRnd[i]->isPlayer == true)
-    //    {
-    //        playerPos = i;
-    //        break;
-    //    }
-    //}
-    /*
-    //cout << this->playerListPerRnd[playerPos]->name << "目前籌碼數量：" << playerListPerRnd[playerPos]->totalChips << endl;
-    if (playerListPerRnd[playerPos]->totalChips == 0)
-    {
-        for (int i = 1; i < this->playerListPerRnd.size(); i++)
-        {
-            cout << setw(10) << left;
-            playerListPerRnd[i]->printName();
-            cout << right;
-            cout << ": " << playerListPerRnd[i]->totalChips << endl;
-        }
-        for (int i = 0; i < this->playerListPerRnd.size(); i++)
-        {
-            if (playerListPerRnd[i]->totalChips == 0)
-            {
-                cout << "玩家";
-                cout << setw(10);
-                playerListPerRnd[i]->printName();
-                cout << " 籌碼數量歸零，退出遊戲。" << endl;
-                if(playerListPerRnd[i]->type == "JuDaKo")
-                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
-                else
-                    this->playerListPerRnd[i]->isAlive = false;
-            }
-        }
-    }
-    else
-    {
-        for (int i = 0; i < this->playerListPerRnd.size(); i++)
-        {
-            cout << setw(10) << left;
-            playerListPerRnd[i]->printName();
-            cout << right;
-            cout << ": " << playerListPerRnd[i]->totalChips << endl;
-        }
-        for (int i = 0; i < this->playerListPerRnd.size(); i++)
-        {
-            if (playerListPerRnd[i]->totalChips <= 0)
-            {
-                cout << "玩家";
-                cout << setw(10);
-                playerListPerRnd[i]->printName();
-                cout << " 籌碼數量歸零，退出遊戲。" << endl;
-                if(playerListPerRnd[i]->type == "JuDaKo")
-                    dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
-                else{
-                    if(this->playerListPerRnd[i]->isPlayer == true)
-                        this->playerAlive = false;
-                    this->playerListPerRnd[i]->isAlive = false;
-                }
-            }
-        }
-    }
-    */
     cout << setw(13) << left << "NAME" << "|" << setw(13) << "  CHARACTER  " << "|" <<setw(18) << "   REMAIN CHIPS"<< endl;
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
     for (int i = 0; i < this->playerListPerRnd.size(); i++)
@@ -2841,7 +2828,7 @@ void Game::calChips()
             cout << " 籌碼數量歸零，退出遊戲。" << endl;
             if(playerListPerRnd[i]->type == "JuDaKo")
                 dynamic_cast<JuDaKo*>(playerListPerRnd[i])->rez(this->leastChips);
-            else if(playerListPerRnd[i]->type == "Landlord")
+            else if(playerListPerRnd[i]->type == "Landlord" || this->playerList[i]->type == "Normal")
                 dynamic_cast<Landlord*>(playerListPerRnd[i])->sellLand();
             else{
                 if(this->playerListPerRnd[i]->isPlayer == true)
@@ -2946,7 +2933,7 @@ void Game::printResult()
     {
         cout << "沒有賭大的贏家" << endl;
     }
-    this_thread::sleep_for(chrono::milliseconds(500));
+    this_thread::sleep_for(chrono::milliseconds(200));
     if (smallWinner != nullptr)
     {
         cout << "賭小的贏家是：";
@@ -2957,7 +2944,7 @@ void Game::printResult()
     {
         cout << "沒有賭小的贏家" << endl;
     }
-    this_thread::sleep_for(chrono::milliseconds(500));
+    this_thread::sleep_for(chrono::milliseconds(200));
     // 輸出其餘玩家的名稱和數學式結果
     if(this->playerListPerRnd.size() > 2 || (bigWinner == nullptr || smallWinner == nullptr))
         cout << "其餘玩家：" << endl;
@@ -2973,7 +2960,7 @@ void Game::printResult()
             else
                 cout << " 賭小 ";
             cout << " 數學式結果為：" << setw(7) << right << fixed << setprecision(3) << playerValue[i] << left << endl;
-           this_thread::sleep_for(chrono::milliseconds(500));
+           this_thread::sleep_for(chrono::milliseconds(200));
         }
     }
     
@@ -3072,7 +3059,7 @@ bool Game::endRound()
     }
     // 地主收租金
     for(int i = 0; i  < this->playerList.size(); i++){
-        if(this->playerList[i]->type == "Landlord"){
+        if(this->playerList[i]->type == "Landlord" || this->playerList[i]->type == "Normal"){
             dynamic_cast<Landlord*>(this->playerList[i])->obtainRent();
         }
     }
@@ -3083,6 +3070,32 @@ bool Game::endRound()
         this->playerList[i]->isFoldThisRound = false;
     }
     this->playerFold == false;
+
+    static bool playerOutOfGame = false;
+    if(this->playerAlive == false && playerOutOfGame == false){
+        string YN;
+        cout << "你已出局，是否在場邊觀賽(按Y留在場邊觀賽，N直接結束遊戲)：";
+        while (true)
+        {
+            try
+            {
+                getline(cin, YN);
+                if (YN != "Y" && YN != "N")
+                    throw invalid_argument("請輸入Y或N");
+                break;
+            }
+            catch (invalid_argument err)
+            {
+                cout << err.what() << ":";
+                cin.clear(); 
+            }
+        }
+        if(YN == "N")
+            return false;
+        else
+            playerOutOfGame = true;
+    }
+    
     return true;
 }
 
