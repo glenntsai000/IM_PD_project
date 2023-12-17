@@ -2718,7 +2718,7 @@ void Game::enemySort()
 
 void Game::gameStart(Player &pyptr, const int playerNum)
 {
-    vector<string> nameList = {"Fourier", "Jay Chou", "Euler", "Ramam", "Newton", "Swift", "Faker", "Lee", "Chen", "Yttria", "GodTone", "Roger", "Calvin", "Einstein", "Maxwell", "Euclidean", "003"};
+    vector<string> nameList = {"Fourier", "Jay Chou", "Euler", "Ramam", "Newton", "Swift", "Faker", "Lee", "Chen", "Yttria", "GodTone", "Roger", "Calvin", "Einstein", "Maxwell", "Euclidean", "003", "Axel", "Bin", "DaChuang", "Hubble", "Otani", "Decoy", "Tsuna", "Kelvin", "Xavier", "Toothless", "Hiccup"};
 
     for (int i = 0; i < 2 * playerNum; i++)
     {
@@ -2887,7 +2887,7 @@ void Game::printResult()
         }
     }
 
-    
+    cout << setfill(' ');
     // 回合結果公布：
     if (this->playerAlive == true && this->playerFold == false)
     {
