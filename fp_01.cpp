@@ -492,10 +492,10 @@ int Player::biddingChips(const int currChip, const int limitChip)
     int lst = currChip - chipBiddenThisRound;
     if (lst == limitChip)
         cout << this->name << " 請進行加注" << endl
-             << "請輸入 " << lst << " ，若欲放棄這回合不繼續下注請輸入 x : ";
+             << "請輸入 " << lst << " ，若欲放棄下注請輸入 x : ";
     else
         cout << this->name << "請進行加注" << endl
-             << "請輸入 " << lst << "~" << limitChip << " ，若欲放棄這回合請輸入 x : ";
+             << "請輸入 " << lst << "~" << limitChip << " ，若欲放棄下注請輸入 x : ";
     string inputBid;
     int playerBid = 0;
     do
@@ -634,35 +634,14 @@ void Player::printHandCard()
 {
     cout << "-------------" << setw(10) << right << this->name << setw(10) << left << "'s hand"
          << "-------------" << endl;
-    cout << setw(15) << "Hand : ";
+    cout << setw(15) << right << "Hand : ";
     for (int i = 0; i < this->cardArr.size(); i++)
     {
         this->cardArr[i]->printCard();
         cout << " ";
     }
     cout << endl;
-    // cout << setw(15) << "Public : ";
-    // for (int i = 0; i < this->cardArr.size(); i++)
-    // {
-    //     if (this->cardArr[i]->getVisibility() == true)
-    //     {
-    //         this->cardArr[i]->printCard();
-    //         cout << " ";
-    //         this_thread::sleep_for(chrono::milliseconds(50));
-    //     }
-    // }
-    // cout << endl;
-    // cout << setw(15) << "Hidden : ";
-    // for (int i = 0; i < this->cardArr.size(); i++)
-    // {
-    //     if (this->cardArr[i]->getVisibility() == false)
-    //     {
-    //         this->cardArr[i]->printCard();
-    //         cout << " ";
-    //         this_thread::sleep_for(chrono::milliseconds(50));
-    //     }
-    // }
-    // cout << endl;
+    
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
 }
 
@@ -2590,10 +2569,10 @@ void Game::biddingPerRound(int rnd)
         if(this->playerListPerRnd.size() == 1)
             return;
         
+        cout << "\n";
         cout << setw(20) << setfill('-') << ""
              << "BID  " << rnd << setw(20) << "" << setfill(' ') << endl;
 
-        cout << "\n";
         bool bidEnd = false;
         if (currChip == leastChips)
         {
@@ -2605,7 +2584,7 @@ void Game::biddingPerRound(int rnd)
         }
         else
         {
-            cout << "加注開始" << endl;
+            cout << "本輪發牌完畢，加注開始！" << endl;
 
             for (int i = 0; i < playerListPerRnd.size(); i++)
             {
@@ -2690,7 +2669,7 @@ void Game::biddingPerRound(int rnd)
         
         
         Game::biddingPrint();
-        cout << "本回合現在下注總數: " << chipsInRound << endl
+        cout << "本回合目前下注總數: " << chipsInRound << endl
              << endl;
     }
 };
@@ -2708,7 +2687,10 @@ void Game::biddingPrint()
         else
             raised = to_string(this->playerListPerRnd[i]->chipsRaised);
         this_thread::sleep_for(chrono::milliseconds(100));
-        printf("%-13s|  %*s  | %*d |%*d\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
+        if (this->playerListPerRnd[i]->isPlayer)
+            printf("%-13s|  %*s  | %*d |%*d\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
+        else
+            printf("\e[1m%-13s|  %*s  | %*d |%*d\e[m\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
 };
@@ -2941,7 +2923,7 @@ void Game::printResult()
     if (bigWinner != nullptr)
     {
         cout << "賭大的贏家是：";
-        cout << setw(10) << bigWinner->name;
+        cout << setw(10) << left << bigWinner->name;
         cout << " 數學式結果為：" << setw(7) << right << fixed << setprecision(3) << playerValue[bigWinneridx] << left << endl;
     }
     else
@@ -2952,7 +2934,7 @@ void Game::printResult()
     if (smallWinner != nullptr)
     {
         cout << "賭小的贏家是：";
-        cout << setw(10) << smallWinner->name;
+        cout << setw(10)<< left << smallWinner->name;
         cout << " 數學式結果為：" <<setw(7) << right << fixed << setprecision(3) << playerValue[smallWinneridx] << left << endl;
     }
     else
@@ -3020,8 +3002,9 @@ void Game::decisionInput()
         }
 
         bool bidDirection = true;
+
         char input;
-        cout << "請決定賭大 / 小，並輸入您的最終數學式" << endl;
+        cout << "決定勝負的時間到了！\n請決定賭大 / 小，並輸入您的最終數學式" << endl;
         cout << "輸入賭注方(B / S) : ";
         try
         {
@@ -3150,20 +3133,20 @@ void Game::printShortRule()
 {
     cout << "歡迎來到" << BOLD << "資管盃慈善德州撲克大賽" << NC <<endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "每位玩家要根據自己的手牌，組出一個數學式，使得該數學式結果盡可能接近或等於20或1，並選擇下注大(B)或小(S)" << endl;
+    cout << "每位玩家要運用自己的手牌，排列一個計算結果接近20或1的數學式，並根據數學式結果，選擇賭大(B)或小(S)。" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
     cout << "遊戲流程如下：" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "根據玩家人數進行對應的回合數，每回合包括第一輪發牌、第一輪下注、第二輪發牌、第二輪下注、選擇下注的方向與排列數字牌與公布結果" << endl << endl;
+    cout << "根據玩家人數進行對應的回合數（最多5回合），每回合包括第一輪發牌、第一輪下注、第二輪發牌、第二輪下注、賭注方向選擇與卡牌數學式排列、結果公布" << endl << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "發牌：每個玩家回合一開始都有三張基本牌(+, -, /)，第一輪發牌會發一張數字牌作為暗牌，兩張公開牌(可能包含 * ，抽到需丟棄一張 + 或 -，並重新抽一張數字牌)，第二輪發牌會再拿到一張公開牌，至此玩家手上有七張牌。" << endl << endl;
+    cout << "1. 發牌：每個玩家回合一開始都有三張基本符號牌（+, -, /）。\n第一輪發牌時，每位玩家會獲得一張隱藏牌、兩張公開牌（獲得 * 時，需選擇丟棄 + 或 - 或不丟棄，並會得到一張數字牌）。\n第二輪發牌會再獲得一張公開牌，最終玩家手上會拿到七張牌。" << endl << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "下注：在每回合開始時，玩家需要下注一個籌碼，下注時每一位玩家下注的下限是前一位玩家這回合下注的數量，上限是該回合玩家擁有籌碼數量的最小值，直到所有下注玩家下注的籌碼相同。" << endl << endl;
+    cout << "2. 下注：每回合開始時，所有玩家會下注一個籌碼作為基本下注。\n第一輪與第二輪下注時，每位玩家可自由下注，玩家可選擇下注大於(加注 Raise)或等於(跟注 Call)前一位玩家下注的數量，每回合下注數量上限為該回合所有玩家持有籌碼數的最小值。\n玩家也可選擇放棄下注(Fold)，放棄下注即放棄該回合，不會繼續參與該回合的進行。\n下注會持續至所有玩家下注籌碼相同為止。" << endl << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "玩家可根據手牌與其他玩家的公開牌選擇下注大或小，選擇大者，需要排列手牌使數學式結果接近或等於20，反之。與目標差距最小者獲勝，該回合賭大獲勝者與賭小獲勝者會平分該回合下注的籌碼。" << endl << endl;
+    cout << "3. 賭注方向選擇與數學式排列：玩家根據手牌與其他玩家的公開牌進行賭注。\n選擇賭大者，須排列手牌使數學式結果盡可能接近或等於20；選擇睹小者，須排列手牌使數學式結果盡可能接近或等於1。\n最後，由與目標差距最小之玩家獲勝，該回合賭大與賭小獲勝者會平分該回合下注的總籌碼。" << endl << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "若遇到差距相同則比較數字牌大小，一共有四種顏色：" << RED << "|1| " << GREEN << "|1| " << BLUE << "|1| " << NC << "|1|，大小順序為：" << RED << "|1|" << NC << ">" GREEN << "|1|" << NC << ">"<< BLUE << "|1|" << NC << ">" << "|1|，"
-         << "賭大的回合中擁有最大數字牌，或賭小回合中擁有最小數字牌的玩家(數字相同會比較牌的顏色)將得以勝出。" << endl;
+    cout << "若遇到差距相同的情形，則比較數字牌大小，數字牌共有四種顏色：" << RED << "|1| " << GREEN << "|1| " << BLUE << "|1| " << NC << "|1|，\n大小順序為：" << RED << "|1|" << NC << ">" GREEN << "|1|" << NC << ">"<< BLUE << "|1|" << NC << ">" << "|1|，"
+         << "\n賭大中擁有最大數字牌的玩家、賭小中擁有最小數字牌的玩家將得以勝出。（數字相同時比較最大或最小數字牌的顏色）" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
     cout << "PS. x / 0 = inf for all x ≠ 0， 0 / 0 is undefined，會直接判定該回合落敗" << endl;
     cout << "PS. 輸入都是不分大小寫，且以第一個字元為主。" << endl << endl;
@@ -3180,7 +3163,7 @@ void Game::printShortRule()
     this_thread::sleep_for(chrono::milliseconds(100));
     cout << "數學家：每一步都精算過，出牌跟下注每一步都充滿邏輯。" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "膽小鬼：我不知道。" << endl;
+    cout << "膽小鬼：我不知道，好怕破產去睡安森。" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
     cout << "地主：擁有1~3筆價值2~8個籌碼的台北市土地，當籌碼歸零時，可以賣地換籌碼，直到賣完地變普通人，每回合一開始籌碼數大於10的且擁有土地的地主會被課稅，但回合結束後會收到租金。" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
@@ -3231,7 +3214,7 @@ int main()
         {
             cin >> playerName;
             if (playerName.length() > 10)
-                throw invalid_argument("請輸入10個字以內的名稱");
+                throw invalid_argument("請輸入10個字元內的名稱");
             break;
         }
         catch (invalid_argument err)
