@@ -2644,7 +2644,7 @@ void Game::calChips()
         }
     }
     cout << "\n";
-    this_thread::sleep_for(chrono::milliseconds(5000));
+    this_thread::sleep_for(chrono::milliseconds(2500));
 }
 
 void Game::printResult()
