@@ -3052,7 +3052,6 @@ void Game::decisionInput()
 
 void Game::printFinalResult()
 {
-    // 潛在問題：玩家名字和電腦角色名字相同
     Character *winner = nullptr;
     int winnerChips = 0;
     // int winner = 0;
@@ -3062,6 +3061,15 @@ void Game::printFinalResult()
         {
             winner = playerList[i];
             winnerChips = playerList[i]->totalChips;
+        }
+        else if(playerList[i]->totalChips == winnerChips)
+        {
+            // 如果玩家和電腦角色的籌碼數相等則設玩家為贏家
+            if(playerList[i]->type == "Player")
+            {
+                winner = playerList[i];
+                winnerChips = playerList[i]->totalChips;
+            }
         }
     }
     winner->printWinner();
