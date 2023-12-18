@@ -14,6 +14,8 @@
         "unordered_map": "cpp",
         "iomanip": "cpp",
         "ios": "cpp",
-        "__threading_support": "cpp"
+        "__threading_support": "cpp",
+        "limits": "cpp",
+        "stdexcept": "cpp"
     }
 }

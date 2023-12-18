@@ -687,7 +687,7 @@ void Player::throwCard(Card *c)
     if (this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0)
     {
         this->printHandCard();
-        cout << "抽到＊需要丟掉一張＋或—，請選擇(輸入q丟棄＊）：";
+        cout << "抽到＊需要丟掉一張＋或—，請選擇(輸入Q丟棄＊）：";
     }
     else if (this->cardArr[0]->getValue().compare("*") == 0 && this->cardArr[0]->getValue().compare("*") != 0)
     {
@@ -702,7 +702,7 @@ void Player::throwCard(Card *c)
     else
         return;
 
-    string symbol;
+    char symbol;
     if (this->cardArr[0]->getValue().compare("*") != 0 && this->cardArr[1]->getValue().compare("*") != 0)
     {
         do
@@ -710,17 +710,18 @@ void Player::throwCard(Card *c)
             try
             {
                 cin >> symbol;
-                if (symbol != "+" && symbol != "-" && symbol != "q")
+                symbol = tolower(symbol);
+                if (symbol != '+' && symbol != '-' && symbol != 'q')
                     throw invalid_argument("wrong input");
             }
             catch (invalid_argument err)
             {
                 cout << "輸入＋或—以外的符號，請重新輸入：";
             }
-        } while (symbol != "+" && symbol != "-" && symbol != "q");
-        if (symbol == "+")
+        } while (symbol != '+' && symbol != '-' && symbol != 'q');
+        if (symbol == '+')
             this->cardArr[0] = c;
-        else if (symbol == "-")
+        else if (symbol == '-')
             this->cardArr[1] = c;
         else
             return;
@@ -732,7 +733,8 @@ void Player::throwCard(Card *c)
             try
             {
                 cin >> symbol;
-                if (symbol != "Y" && symbol != "N")
+                symbol = tolower(symbol);
+                if (symbol != 'y' && symbol != 'n')
                 {
                     throw invalid_argument("Neither Y nor N");
                 }
@@ -741,8 +743,8 @@ void Player::throwCard(Card *c)
             {
                 cout << "輸入不是Y或N，請重新輸入(Y/N)：";
             }
-        } while (symbol != "Y" && symbol != "N");
-        if (symbol == "Y")
+        } while (symbol != 'y' && symbol != 'n');
+        if (symbol == 'y')
         {
             if (this->cardArr[0]->getValue() == "*")
                 this->cardArr[1] = c;
@@ -1842,7 +1844,7 @@ class AbsoluteLoser : public Character
 {
 private:
 public:
-    AbsoluteLoser(const std::string& n) : Character(n, false, "Loser") {};
+    AbsoluteLoser(const std::string& n) : Character(n, false, "Loser") {this->totalChips = 5;};
     ~AbsoluteLoser() {};
     void sortCard();
     int biddingChips(const int currChip, const int limitChip); // 前一人下注的籌碼(要先呼叫過sortCard才能呼叫biddingChips)
@@ -3018,7 +3020,7 @@ void Game::decisionInput()
         }
 
         bool bidDirection = true;
-        string input;
+        char input;
         cout << "請決定賭大 / 小，並輸入您的最終數學式" << endl;
         cout << "輸入賭注方(B / S) : ";
         try
@@ -3026,20 +3028,21 @@ void Game::decisionInput()
             cin.clear();
             cin >> input;
             cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            if (input != "S" && input != "B")
+            input = tolower(input);
+            if (input != 's' && input != 'b')
                 throw invalid_argument("invalid input");
         }
         catch (invalid_argument err)
         {
             //input = 0;
-            while (input != "S" && input != "B")
+            while (input != 's' && input != 'b')
             {
                 cout << "必須輸入B或S，重新輸入賭注方(B / S) : ";
                 cin >> input;
                 cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             }
         }
-        if (input == "S")
+        if (input == 's')
             bidDirection = false;
 
         playerListPerRnd[playerPos]->bigOrSmall = bidDirection;
@@ -3096,25 +3099,27 @@ bool Game::endRound()
 
     static bool playerOutOfGame = false;
     if(this->playerAlive == false && playerOutOfGame == false){
-        string YN;
+        char YN;
         cout << "你已出局，是否在場邊觀賽(按Y留在場邊觀賽，N直接結束遊戲)：";
         cin.get();
         while (true)
         {
             try
             {
-                getline(cin, YN);
-                if (YN != "Y" && YN != "N")
+                cin >> YN;
+                YN = tolower(YN);
+                if (YN != 'y' && YN != 'n')
                     throw invalid_argument("請輸入Y或N");
                 break;
             }
             catch (invalid_argument err)
             {
                 cout << err.what() << ":";
-                cin.clear(); 
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
             }
         }
-        if(YN == "N")
+        if(YN == 'n')
             return false;
         else
             playerOutOfGame = true;
@@ -3142,10 +3147,12 @@ void Game::printShortRule()
     cout << "若遇到差距相同則比較數字牌大小，一共有四種顏色：" << RED << "|1| " << GREEN << "|1| " << BLUE << "|1| " << NC << "|1|，大小順序為：" << RED << "|1|" << NC << ">" GREEN << "|1|" << NC << ">"<< BLUE << "|1|" << NC << ">" << "|1|，"
          << "賭大的回合中擁有最大數字牌，或賭小回合中擁有最小數字牌的玩家(數字相同會比較牌的顏色)將得以勝出。" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
-    cout << "PS. x / 0 = inf for all x ≠ 0， 0 / 0 is undefined，會直接判定該回合落敗" << endl << endl;
+    cout << "PS. x / 0 = inf for all x ≠ 0， 0 / 0 is undefined，會直接判定該回合落敗" << endl;
+    cout << "PS. 輸入都是不分大小寫，且以第一個字元為主。" << endl << endl;
     cout << "按Enter繼續...";
     cin.get();
     getchar();
+
     cout << endl << endl;
     cout << "電腦玩家一共有七種角色(括號內為該角色在遊戲中的代號)：富豪(Rich)、酒鬼(Drunkard)、數學家(Math)、膽小鬼(Coward)、地主(Landlord)、" << GOLD << "豬大哥(JuDako)" << NC "與輸家(Loser)" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
@@ -3164,6 +3171,7 @@ void Game::printShortRule()
     cout << "輸家：顧名思義，負責輸的。" << endl;
     this_thread::sleep_for(chrono::milliseconds(100));
     cout << "按Enter繼續...";
+
     getchar();
 }
 
@@ -3197,7 +3205,7 @@ int main()
         }
     }
     // main for test
-    cout << "請輸入玩家名稱: ";
+    cout << "請輸入玩家名稱(10個英文字母以內): ";
     string playerName;
     while (true)
     {
