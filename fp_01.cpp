@@ -2357,7 +2357,6 @@ void Game::initPlayerRnd()
     }
 }
 
-
 void Game::initCardList()
 {
     // 清空卡池
@@ -2536,7 +2535,6 @@ void Game::printPlayersCard()
     }
 }
 
-
 void Game::biddingPerRound(int rnd)
 {
     if (rnd == 0) // 基本下注1
@@ -2688,9 +2686,9 @@ void Game::biddingPrint()
             raised = to_string(this->playerListPerRnd[i]->chipsRaised);
         this_thread::sleep_for(chrono::milliseconds(100));
         if (this->playerListPerRnd[i]->isPlayer)
-            printf("%-13s|  %*s  | %*d |%*d\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
-        else
             printf("\e[1m%-13s|  %*s  | %*d |%*d\e[m\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
+        else
+            printf("%-13s|  %*s  | %*d |%*d\n", this->playerListPerRnd[i]->name.c_str(), 6, raised.c_str(),  7, this->playerListPerRnd[i]->chipBiddenThisRound, 11, this->playerListPerRnd[i]->totalChips);
     }
     cout << setw(46) << setfill('-') << "" << setfill(' ') << endl;
 };
@@ -2710,7 +2708,7 @@ void Game::printPlayerList()
         cout << setw(12) << this->playerList[i]->getTotalChips();
         cout << NC << left << endl;
     }
-    cout << "=============================================" << endl;
+    cout << "==============================================" << endl;
     this_thread::sleep_for(chrono::milliseconds(2000));
 }
 
